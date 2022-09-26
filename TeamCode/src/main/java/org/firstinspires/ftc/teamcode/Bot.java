@@ -2,13 +2,9 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
-import com.qualcomm.robotcore.hardware.AnalogOutput;
-import com.qualcomm.robotcore.hardware.AnalogOutputController;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
-import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -25,38 +21,35 @@ import java.util.List;
 
 public class Bot {
 
-        // Motors
-        public static DcMotorEx frontLeftMotor = null;
-        public static DcMotorEx frontRightMotor = null;
-        public static DcMotorEx backLeftMotor = null;
-        public static DcMotorEx backRightMotor = null;
-        public static DcMotorEx armMotor = null;
-        public static DcMotorEx spinMotor = null;
+    // Motors
+    public static DcMotorEx frontLeftMotor = null;
+    public static DcMotorEx frontRightMotor = null;
+    public static DcMotorEx backLeftMotor = null;
+    public static DcMotorEx backRightMotor = null;
+    public static DcMotorEx armMotor = null;
+    public static DcMotorEx spinMotor = null;
 
-        // Servos
-        public static Servo wristServo = null;
-        public static Servo clawServo = null;
+    // Servos
+    public static Servo wristServo = null;
+    public static Servo clawServo = null;
 
-        // Safety features
-        public static double chassis_speed_cap = 0.5;
-        public static double arm_speed_cap = 0.5;
-        public static double spinner_speed_cap = 0.5;
+    // Safety features
+    public static double chassis_speed_cap = 0.5;
+    public static double arm_speed_cap = 0.5;
+    public static double spinner_speed_cap = 0.5;
 
-        // Navigation sensors
-        public static WebcamName webcam = null;
-        public static BNO055IMU imu = null;
-        public static Orientation orientation = null;
-        public static Acceleration acceleration = null;
+    // Navigation sensors
+    public static WebcamName webcam = null;
+    public static BNO055IMU imu = null;
+    public static Orientation orientation = null;
+    public static Acceleration acceleration = null;
 
-        // Camera parameters
-        public static TFObjectDetector tfod;
-        public static VuforiaLocalizer vuforia;
-        private static final String TFOD_MODEL_ASSET = "BlooBoi_Proto.tflite";
-        private static final String[] LABELS = {"Blooboi"};
-        private static final String VUFORIA_KEY = "AbskhHb/////AAABmb8nKWBiYUJ9oEFmxQL9H2kC6M9FzPa1acXUaS/H5wRkeNbpNVBJjDfcrhlTV2SIGc/lxBOtq9X7doE2acyeVOPg4sP69PQQmDVQH5h62IwL8x7BS/udilLU7MyX3KEoaFN+eR1o4FKBspsYrIXA/Oth+TUyrXuAcc6bKSSblICUpDXCeUbj17KrhghgcgxU6wzl84lCDoz6IJ9egO+CG4HlsBhC/YAo0zzi82/BIUMjBLgFMc63fc6eGTGiqjCfrQPtRWHdj2sXHtsjZr9/BpLDvFwFK36vSYkRoSZCZ38Fr+g3nkdep25+oEsmx30IkTYvQVMFZKpK3WWMYUWjWgEzOSvhh+3BOg+3UoxBJSNk";
-
-        // Analog ports
-        public static AnalogOutputController analogController1;
+    // Camera parameters
+    public static TFObjectDetector tfod;
+    public static VuforiaLocalizer vuforia;
+    private static final String TFOD_MODEL_ASSET = "BlooBoi_Proto.tflite";
+    private static final String[] LABELS = {"Blooboi"};
+    private static final String VUFORIA_KEY = "AbskhHb/////AAABmb8nKWBiYUJ9oEFmxQL9H2kC6M9FzPa1acXUaS/H5wRkeNbpNVBJjDfcrhlTV2SIGc/lxBOtq9X7doE2acyeVOPg4sP69PQQmDVQH5h62IwL8x7BS/udilLU7MyX3KEoaFN+eR1o4FKBspsYrIXA/Oth+TUyrXuAcc6bKSSblICUpDXCeUbj17KrhghgcgxU6wzl84lCDoz6IJ9egO+CG4HlsBhC/YAo0zzi82/BIUMjBLgFMc63fc6eGTGiqjCfrQPtRWHdj2sXHtsjZr9/BpLDvFwFK36vSYkRoSZCZ38Fr+g3nkdep25+oEsmx30IkTYvQVMFZKpK3WWMYUWjWgEzOSvhh+3BOg+3UoxBJSNk";
 
     public static void initializeHWMap (HardwareMap hwMap){
 
@@ -74,7 +67,6 @@ public class Bot {
         imu = hwMap.get(BNO055IMU.class, "imu");
         webcam = hwMap.get(WebcamName.class, "Webcam 1");
 
-        analogController1 = hwMap.get(AnalogOutputController.class, "analog_port_1");
         //#################### HARDWARE MAPPING END ####################\\
 
         //#################### IMU CALIBRATION ####################\\
