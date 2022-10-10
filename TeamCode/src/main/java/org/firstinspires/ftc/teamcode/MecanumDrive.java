@@ -4,10 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 public class MecanumDrive extends Drivetrain
 {
-    DcMotorEx FrontRightWheel;
-    DcMotorEx FrontLeftWheel;
-    DcMotorEx BackRightWheel;
-    DcMotorEx BackLeftWheel;
+    DcMotorEx FrontRightWheel, FrontLeftWheel, BackRightWheel, BackLeftWheel;
 
     public MecanumDrive(DcMotorEx FrontRightMotor, DcMotorEx FrontLeftMotor, DcMotorEx BackRightMotor, DcMotorEx BackLeftMotor)
     {

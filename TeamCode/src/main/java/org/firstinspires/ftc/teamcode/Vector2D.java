@@ -2,8 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 public class Vector2D
 {
-    public double x;
-    public double y;
+    public double x, y;
 
     public Vector2D (double x, double y)
     {
