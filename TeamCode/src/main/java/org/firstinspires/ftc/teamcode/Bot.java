@@ -4,6 +4,7 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
@@ -15,9 +16,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 public class Bot {
 
     public Drivetrain chassis;
+
     public BNO055IMU imu;
+    public UltrasonicSensor ultrasonicSensor;
+
     public Orientation orientation;
     public Acceleration acceleration;
+
+
 
     public Bot (Class<? extends Drivetrain> drivetrainClass, HardwareMap hwMap)
     {
@@ -46,6 +52,8 @@ public class Bot {
 
             chassis = new MecanumDrive(FrontRightMotor, FrontLeftMotor, BackRightMotor, BackLeftMotor);
         }
+
+        this.ultrasonicSensor = new UltrasonicSensor(hwMap.get(DigitalChannel.class, "US_Trigger"), hwMap.get(DigitalChannel.class, "US_Echo"));
 
         BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
 
