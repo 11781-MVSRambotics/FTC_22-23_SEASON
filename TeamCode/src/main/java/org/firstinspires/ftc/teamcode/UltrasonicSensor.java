@@ -16,11 +16,11 @@ public class UltrasonicSensor
     {
         in.setMode(DigitalChannel.Mode.INPUT);
         out.setMode(DigitalChannel.Mode.OUTPUT);
-        in.setState(false);
-        out.setState(false);
+        in.setState(true);
+        out.setState(true);
 
-        this.trigger = in;
-        this.echo = out;
+        trigger = in;
+        echo = out;
     }
 
     public double ping()
@@ -29,12 +29,12 @@ public class UltrasonicSensor
         time_final = 0;
         delay = 0;
 
-        trigger.setState(true);
+        trigger.setState(false);
         try {Thread.sleep(0, 10000);}
         catch (InterruptedException e) {e.printStackTrace();}
-        trigger.setState(false);
+        trigger.setState(true);
         time_initial = System.nanoTime();
-        while (!echo.getState())
+        while (echo.getState())
         {
             time_final = System.nanoTime();
         }
