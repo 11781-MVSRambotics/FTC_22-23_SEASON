@@ -15,45 +15,26 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 public class Bot {
 
-    public Drivetrain chassis;
+    public MecanumDrive chassis;
 
     public BNO055IMU imu;
-    public UltrasonicSensor ultrasonicSensor;
-
     public Orientation orientation;
     public Acceleration acceleration;
 
 
 
-    public Bot (Class<? extends Drivetrain> drivetrainClass, HardwareMap hwMap)
+    public Bot (HardwareMap hwMap)
     {
-        if (drivetrainClass == SwerveDrive.class)
-        {
-            DcMotorEx RightTopSwerveMotor = hwMap.get(DcMotorEx.class, "RightTopSwerve");
-            DcMotorEx RightBottomSwerveMotor = hwMap.get(DcMotorEx.class, "RightBottomSwerve");
-            DcMotorEx LeftTopSwerveMotor = hwMap.get(DcMotorEx.class, "LeftTopSwerve");
-            DcMotorEx LeftBottomSwerveMotor = hwMap.get(DcMotorEx.class, "LeftBottomSwerve");
 
-            SwerveModule RightSwerveModule = new SwerveModule(RightTopSwerveMotor, RightBottomSwerveMotor);
-            SwerveModule LeftSwerveModule = new SwerveModule(LeftTopSwerveMotor, LeftBottomSwerveMotor);
+        DcMotorEx FrontRightMotor = hwMap.get(DcMotorEx.class, "FrontRightMotor");
+        DcMotorEx FrontLeftMotor = hwMap.get(DcMotorEx.class, "FrontLeftMotor");
+        DcMotorEx BackRightMotor = hwMap.get(DcMotorEx.class, "BackRightMotor");
+        DcMotorEx BackLeftMotor = hwMap.get(DcMotorEx.class, "BackLeftMotor");
 
-             chassis = new SwerveDrive(RightSwerveModule, LeftSwerveModule);
-        }
+        FrontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        BackRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        else if (drivetrainClass == MecanumDrive.class)
-        {
-            DcMotorEx FrontRightMotor = hwMap.get(DcMotorEx.class, "FrontRightMotor");
-            DcMotorEx FrontLeftMotor = hwMap.get(DcMotorEx.class, "FrontLeftMotor");
-            DcMotorEx BackRightMotor = hwMap.get(DcMotorEx.class, "BackRightMotor");
-            DcMotorEx BackLeftMotor = hwMap.get(DcMotorEx.class, "BackLeftMotor");
-
-            FrontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-            BackRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-
-            chassis = new MecanumDrive(FrontRightMotor, FrontLeftMotor, BackRightMotor, BackLeftMotor);
-        }
-
-        this.ultrasonicSensor = new UltrasonicSensor(hwMap.get(DigitalChannel.class, "US_Trigger"), hwMap.get(DigitalChannel.class, "US_Echo"));
+        chassis = new MecanumDrive(FrontRightMotor, FrontLeftMotor, BackRightMotor, BackLeftMotor);
 
         BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
 
