@@ -5,14 +5,23 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 public class MecanumDrive
 {
-    DcMotorEx FrontRightWheel, FrontLeftWheel, BackRightWheel, BackLeftWheel;
+    DcMotorEx FrontRightWheel;
+    DcMotorEx FrontLeftWheel;
+    DcMotorEx BackRightWheel;
+    DcMotorEx BackLeftWheel;
+    public BNO055IMU imu;
 
-    public MecanumDrive(DcMotorEx FrontRightMotor, DcMotorEx FrontLeftMotor, DcMotorEx BackRightMotor, DcMotorEx BackLeftMotor)
+    public MecanumDrive(DcMotorEx FrontRightMotor, DcMotorEx FrontLeftMotor, DcMotorEx BackRightMotor, DcMotorEx BackLeftMotor, BNO055IMU imu)
     {
         this.FrontRightWheel = FrontRightMotor;
         this.FrontLeftWheel = FrontLeftMotor;
         this.BackRightWheel = BackRightMotor;
         this.BackLeftWheel = BackLeftMotor;
+        this.imu = imu;
+    }
+
+    public void Orange()
+    {
 
     }
 

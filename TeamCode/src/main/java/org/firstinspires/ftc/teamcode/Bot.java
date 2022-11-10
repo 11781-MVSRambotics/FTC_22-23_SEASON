@@ -34,8 +34,6 @@ public class Bot {
         FrontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         BackRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        chassis = new MecanumDrive(FrontRightMotor, FrontLeftMotor, BackRightMotor, BackLeftMotor);
-
         BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
 
         IMUparameters.angleUnit            = BNO055IMU.AngleUnit.DEGREES;
@@ -47,6 +45,8 @@ public class Bot {
 
         imu = hwMap.get(BNO055IMU.class, "imu");
         imu.initialize(IMUparameters);
+
+        chassis = new MecanumDrive(FrontRightMotor, FrontLeftMotor, BackRightMotor, BackLeftMotor, imu);
     }
 
     public void UpdateIMUData (AxesReference frameOfReference, AxesOrder order)
