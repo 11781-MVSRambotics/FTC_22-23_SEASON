@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
-public class MecanumDrive extends Drivetrain
+public class MecanumDrive
 {
     DcMotorEx FrontRightWheel, FrontLeftWheel, BackRightWheel, BackLeftWheel;
 
