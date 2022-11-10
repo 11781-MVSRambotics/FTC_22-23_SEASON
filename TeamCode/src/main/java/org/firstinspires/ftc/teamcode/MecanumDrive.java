@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 public class MecanumDrive extends Drivetrain
@@ -12,10 +13,31 @@ public class MecanumDrive extends Drivetrain
         this.FrontLeftWheel = FrontLeftMotor;
         this.BackRightWheel = BackRightMotor;
         this.BackLeftWheel = BackLeftMotor;
+
+    }
+
+    public void Turn(double angle, double power)
+    {
+        if (angle > 0){
+            FrontLeftWheel.setPower(power);
+            FrontRightWheel.setPower(-power);
+            BackLeftWheel.setPower(power);
+            BackRightWheel.setPower(-power);
+        }
+        else {
+            FrontLeftWheel.setPower(-power);
+            FrontRightWheel.setPower(power);
+            BackLeftWheel.setPower(-power);
+            BackRightWheel.setPower(power);
+        }
+
     }
 
     public void MoveAuto(double angle, double yaw, double power)
     {
+
+
+        // Changes degrees to radians
         angle *= Math.PI/180;
 
         Move(new Vector2D(Math.cos(angle), Math.sin(angle)), yaw, power);
