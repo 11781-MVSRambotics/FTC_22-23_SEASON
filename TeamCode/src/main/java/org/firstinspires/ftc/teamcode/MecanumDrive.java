@@ -20,11 +20,6 @@ public class MecanumDrive
         this.imu = imu;
     }
 
-    public void Orange()
-    {
-
-    }
-
     public void Turn(double angle, double power)
     {
         if (angle > 0){
@@ -63,6 +58,7 @@ public class MecanumDrive
         double backLeftPower   = direction.y - direction.x + yaw;
         double backRightPower  = direction.y + direction.x - yaw;
 
+        /*
         // Normalize the values so no wheel power exceeds 100%
         // This ensures that the robot maintains the desired motion.
         max = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
@@ -75,7 +71,7 @@ public class MecanumDrive
             backLeftPower   /= max;
             backRightPower  /= max;
         }
-
+        */
         frontLeftPower  *= power;
         frontRightPower *= power;
         backLeftPower   *= power;

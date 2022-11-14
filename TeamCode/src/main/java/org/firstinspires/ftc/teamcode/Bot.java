@@ -31,9 +31,6 @@ public class Bot {
         DcMotorEx BackRightMotor = hwMap.get(DcMotorEx.class, "BackRightMotor");
         DcMotorEx BackLeftMotor = hwMap.get(DcMotorEx.class, "BackLeftMotor");
 
-        FrontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        BackRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-
         BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
 
         IMUparameters.angleUnit            = BNO055IMU.AngleUnit.DEGREES;
