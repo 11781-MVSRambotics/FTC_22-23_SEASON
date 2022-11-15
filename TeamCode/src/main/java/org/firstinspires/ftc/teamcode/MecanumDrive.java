@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
+import org.firstinspires.ftc.teamcode.utils.Vector2D;
+
 public class MecanumDrive
 {
     DcMotorEx FrontRightWheel, FrontLeftWheel, BackRightWheel, BackLeftWheel;
