@@ -10,15 +10,18 @@ public class PoleDetectionPipeline extends OpenCvPipeline {
     @Override
     public Mat processFrame(Mat input) {
 
-        Scalar yellowLower = new Scalar(95, 15, 15);
-        Scalar yellowUpper = new Scalar(100, 200, 200);
+        Scalar yellowLower = new Scalar(95, 10, 20);
+        Scalar yellowUpper = new Scalar(105, 245, 235);
 
-        Mat hsv = new Mat();
-        Mat colorMask = new Mat();
-        Mat yellowFiltered = new Mat();
+        Mat hsv;
+        Mat colorMask;
+        Mat yellowFiltered;
 
+        hsv = input;
         Imgproc.cvtColor(input, hsv, Imgproc.COLOR_BGR2HSV);
+        colorMask = hsv;
         Core.inRange(hsv, yellowLower, yellowUpper, colorMask);
+        yellowFiltered = new Mat();
         Core.bitwise_and(hsv, colorMask, yellowFiltered);
 
         return yellowFiltered;
