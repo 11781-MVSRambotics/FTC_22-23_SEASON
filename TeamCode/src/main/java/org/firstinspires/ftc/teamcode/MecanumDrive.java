@@ -20,27 +20,8 @@ public class MecanumDrive
         this.imu = imu;
     }
 
-    public void Turn(double angle, double power)
-    {
-        if (angle > 0){
-            FrontLeftWheel.setPower(power);
-            FrontRightWheel.setPower(-power);
-            BackLeftWheel.setPower(power);
-            BackRightWheel.setPower(-power);
-        }
-        else {
-            FrontLeftWheel.setPower(-power);
-            FrontRightWheel.setPower(power);
-            BackLeftWheel.setPower(-power);
-            BackRightWheel.setPower(power);
-        }
-
-    }
-
     public void MoveAuto(double angle, double yaw, double power)
     {
-
-
         // Changes degrees to radians
         angle *= Math.PI/180;
 

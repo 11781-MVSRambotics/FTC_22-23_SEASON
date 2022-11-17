@@ -16,7 +16,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 public class Bot {
 
     public MecanumDrive chassis;
-
+    public Turret turret;
     public BNO055IMU imu;
     public Orientation orientation;
     public Acceleration acceleration;
@@ -30,6 +30,8 @@ public class Bot {
         DcMotorEx FrontLeftMotor = hwMap.get(DcMotorEx.class, "FrontLeftMotor");
         DcMotorEx BackRightMotor = hwMap.get(DcMotorEx.class, "BackRightMotor");
         DcMotorEx BackLeftMotor = hwMap.get(DcMotorEx.class, "BackLeftMotor");
+        DcMotorEx TurnMotor = hwMap.get(DcMotorEx.class, "TurnMotor");
+        DcMotorEx ArmMotor = hwMap.get(DcMotorEx.class, "ArmMotor");
 
         BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
 
@@ -44,6 +46,7 @@ public class Bot {
         imu.initialize(IMUparameters);
 
         chassis = new MecanumDrive(FrontRightMotor, FrontLeftMotor, BackRightMotor, BackLeftMotor, imu);
+        turret = new Turret(TurnMotor, ArmMotor);
     }
 
     public void UpdateIMUData (AxesReference frameOfReference, AxesOrder order)
