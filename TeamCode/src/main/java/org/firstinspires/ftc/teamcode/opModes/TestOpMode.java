@@ -45,7 +45,7 @@ public class TestOpMode extends LinearOpMode
 
         while(opModeIsActive())
         {
-            chassis.Move(new Vector2D(gamepad1.left_stick_y, gamepad1.left_stick_x), gamepad1.right_stick_x, 1);
+            chassis.Move(new Vector2D(gamepad1.left_stick_x, -gamepad1.left_stick_y), gamepad1.right_stick_x, 1);
 
 
             telemetry.addData("FrontLeft", FrontLeftMotor.getPower());
