@@ -18,6 +18,7 @@ public class Bot {
     public MecanumDrive chassis;
     public Turret turret;
     public BNO055IMU imu;
+    public BNO055IMU extimu;
     public Orientation orientation;
     public Acceleration acceleration;
 
@@ -43,10 +44,13 @@ public class Bot {
         IMUparameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
 
         imu = hwMap.get(BNO055IMU.class, "imu");
+        extimu = hwMap.get(BNO055IMU.class, "extimu");
         imu.initialize(IMUparameters);
 
+
+
         chassis = new MecanumDrive(FrontRightMotor, FrontLeftMotor, BackRightMotor, BackLeftMotor, imu);
-        turret = new Turret(TurnMotor, ArmMotor);
+        turret = new Turret(TurnMotor, ArmMotor, extimu);
     }
 
     public void UpdateIMUData (AxesReference frameOfReference, AxesOrder order)

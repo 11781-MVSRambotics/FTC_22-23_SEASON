@@ -1,16 +1,19 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 public class Turret {
     DcMotorEx TurnMotor;
     DcMotorEx ArmMotor;
+    public BNO055IMU extimu;
 
-    public Turret(DcMotorEx TurnMotor, DcMotorEx ArmMotor)
+    public Turret(DcMotorEx TurnMotor, DcMotorEx ArmMotor, BNO055IMU extimu)
     {
         this.TurnMotor = TurnMotor;
         this.ArmMotor = ArmMotor;
+        this.extimu = extimu;
     }
 
     public void TurnTurret(double power)
@@ -21,6 +24,7 @@ public class Turret {
 
     public void TurnTurretAuto(int angle, double power)
     {
+
         TurnMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         TurnMotor.setTargetPosition(angle);
         TurnMotor.setPower(power);

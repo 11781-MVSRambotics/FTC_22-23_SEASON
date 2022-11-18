@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Bot;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.teamcode.Turret;
 import org.firstinspires.ftc.teamcode.Vector2D;
 
 @TeleOp(name = "Testbench")
@@ -26,6 +27,7 @@ public class TestOpMode extends LinearOpMode
         DcMotorEx BackLeftMotor = hardwareMap.get(DcMotorEx.class, "BackLeftMotor");
 
         BNO055IMU imu;
+        BNO055IMU extimu;
 
         BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
 
@@ -36,6 +38,7 @@ public class TestOpMode extends LinearOpMode
         IMUparameters.loggingTag           = "IMU";
         IMUparameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
 
+        extimu = hardwareMap.get(BNO055IMU.class, "extimu");
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(IMUparameters);
 
@@ -56,7 +59,7 @@ public class TestOpMode extends LinearOpMode
             telemetry.addData("Joystick x:", gamepad1.left_stick_x);
             telemetry.addData("Right JOystick", gamepad1.right_stick_x);
 
-            telemetry.addData("Bruv", imu.getAngularOrientation().firstAngle);
+            telemetry.addData("Bruv", extimu.getAngularOrientation());
             telemetry.update();
         }
 
