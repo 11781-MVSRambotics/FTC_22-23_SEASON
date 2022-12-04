@@ -6,7 +6,7 @@ import org.firstinspires.ftc.teamcode.utils.Vector2D;
 
 public class MecanumDrive
 {
-    DcMotorEx FrontRightWheel, FrontLeftWheel, BackRightWheel, BackLeftWheel;
+    public DcMotorEx FrontRightWheel, FrontLeftWheel, BackRightWheel, BackLeftWheel;
 
     public MecanumDrive(DcMotorEx FrontRightMotor, DcMotorEx FrontLeftMotor, DcMotorEx BackRightMotor, DcMotorEx BackLeftMotor)
     {
