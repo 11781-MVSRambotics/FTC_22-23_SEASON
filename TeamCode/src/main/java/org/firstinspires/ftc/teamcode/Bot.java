@@ -42,7 +42,12 @@ public class Bot {
         DcMotorEx TurretExtendMotor = hwMap.get(DcMotorEx.class, "TurretExtendMotor");
 
         FrontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        BackRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        BackLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        FrontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        FrontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        BackLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        BackRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         chassis = new MecanumDrive(FrontRightMotor, FrontLeftMotor, BackRightMotor, BackLeftMotor);
         turret = new Turret(TurretTurnMotor, TurretExtendMotor);
