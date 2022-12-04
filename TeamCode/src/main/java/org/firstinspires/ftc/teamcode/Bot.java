@@ -16,7 +16,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 public class Bot {
 
     public MecanumDrive chassis;
-    public Turret turret;
     public BNO055IMU imu;
     public BNO055IMU extimu;
     public Orientation orientation;
@@ -50,7 +49,6 @@ public class Bot {
 
 
         chassis = new MecanumDrive(FrontRightMotor, FrontLeftMotor, BackRightMotor, BackLeftMotor, imu);
-        turret = new Turret(TurnMotor, ArmMotor, extimu);
     }
 
     public void UpdateIMUData (AxesReference frameOfReference, AxesOrder order)
