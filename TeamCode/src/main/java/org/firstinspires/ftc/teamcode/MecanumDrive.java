@@ -1,28 +1,23 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+
+import org.firstinspires.ftc.teamcode.utils.Vector2D;
 
 public class MecanumDrive
 {
-    DcMotorEx FrontRightWheel;
-    DcMotorEx FrontLeftWheel;
-    DcMotorEx BackRightWheel;
-    DcMotorEx BackLeftWheel;
-    public BNO055IMU imu;
+    public DcMotorEx FrontRightWheel, FrontLeftWheel, BackRightWheel, BackLeftWheel;
 
-    public MecanumDrive(DcMotorEx FrontRightMotor, DcMotorEx FrontLeftMotor, DcMotorEx BackRightMotor, DcMotorEx BackLeftMotor, BNO055IMU imu)
+    public MecanumDrive(DcMotorEx FrontRightMotor, DcMotorEx FrontLeftMotor, DcMotorEx BackRightMotor, DcMotorEx BackLeftMotor)
     {
         this.FrontRightWheel = FrontRightMotor;
         this.FrontLeftWheel = FrontLeftMotor;
         this.BackRightWheel = BackRightMotor;
         this.BackLeftWheel = BackLeftMotor;
-        this.imu = imu;
     }
 
     public void MoveAuto(double angle, double yaw, double power)
     {
-        // Changes degrees to radians
         angle *= Math.PI/180;
 
         Move(new Vector2D(Math.cos(angle), Math.sin(angle)), yaw, power);
@@ -38,7 +33,6 @@ public class MecanumDrive
         double frontRightPower = direction.y - direction.x - yaw;
         double backLeftPower   = direction.y - direction.x + yaw;
         double backRightPower  = direction.y + direction.x - yaw;
-
 
         // Normalize the values so no wheel power exceeds 100%
         // This ensures that the robot maintains the desired motion.

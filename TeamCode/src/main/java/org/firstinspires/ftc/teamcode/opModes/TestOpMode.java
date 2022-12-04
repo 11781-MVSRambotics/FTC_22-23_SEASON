@@ -1,13 +1,17 @@
 package org.firstinspires.ftc.teamcode.opModes;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 
-import org.firstinspires.ftc.teamcode.MecanumDrive;
-import org.firstinspires.ftc.teamcode.Vector2D;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.Bot;
+import org.firstinspires.ftc.teamcode.Turret;
+import org.firstinspires.ftc.teamcode.utils.PoleDetectionPipeline;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+import org.openftc.easyopencv.OpenCvWebcam;
 
 @TeleOp(name = "Testbench")
 public class TestOpMode extends LinearOpMode
@@ -15,46 +19,54 @@ public class TestOpMode extends LinearOpMode
     @Override
     public void runOpMode()
     {
+        Bot bot = new Bot(hardwareMap);
 
-        DcMotorEx FrontRightMotor = hardwareMap.get(DcMotorEx.class, "FrontRightMotor");
-        DcMotorEx FrontLeftMotor = hardwareMap.get(DcMotorEx.class, "FrontLeftMotor");
-        DcMotorEx BackRightMotor = hardwareMap.get(DcMotorEx.class, "BackRightMotor");
-        DcMotorEx BackLeftMotor = hardwareMap.get(DcMotorEx.class, "BackLeftMotor");
+        /*
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        OpenCvWebcam camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Eye_Of_Sauron"), cameraMonitorViewId);
 
-        BNO055IMU imu;
-        BNO055IMU extimu;
+        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+            @Override
+            public void onOpened() {
+                camera.setPipeline(new PoleDetectionPipeline());
+                camera.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT);
+            }
 
-        BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
+            @Override
+            public void onError(int errorCode) {
 
-        IMUparameters.angleUnit            = BNO055IMU.AngleUnit.DEGREES;
-        IMUparameters.accelUnit            = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        IMUparameters.calibrationDataFile  = "BNO055IMUCalibration.json";
-        IMUparameters.loggingEnabled       = true;
-        IMUparameters.loggingTag           = "IMU";
-        IMUparameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-
-        extimu = hardwareMap.get(BNO055IMU.class, "extimu");
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-        imu.initialize(IMUparameters);
-
-        MecanumDrive chassis = new MecanumDrive(FrontRightMotor, FrontLeftMotor, BackRightMotor, BackLeftMotor, imu);
+            }
+        });
+         */
 
         waitForStart();
 
         while(opModeIsActive())
         {
-            chassis.Move(new Vector2D(gamepad1.left_stick_x, -gamepad1.left_stick_y), gamepad1.right_stick_x, 1);
+            if (gamepad1.right_trigger != 0)
+            {
+                bot.turret.Extend(1000, 2000, Turret.ExtendMode.ABSOLUTE);
+            }
+            else
+            {
+                bot.turret.Extend(0, 2000, Turret.ExtendMode.ABSOLUTE);
+            }
 
+            if (gamepad1.right_bumper)
+            {
+                bot.turret.Rotate(480, 500, Turret.RotateMode.ABSOLUTE);
+            }
 
-            telemetry.addData("FrontLeft", FrontLeftMotor.getPower());
-            telemetry.addData("FrontRight", FrontRightMotor.getPower());
-            telemetry.addData("BackLeft", BackLeftMotor.getPower());
-            telemetry.addData("BackRight", BackRightMotor.getPower());
-            telemetry.addData("Joystick y:", gamepad1.left_stick_y);
-            telemetry.addData("Joystick x:", gamepad1.left_stick_x);
-            telemetry.addData("Right JOystick", gamepad1.right_stick_x);
+            else if (gamepad1.left_bumper)
+            {
+                bot.turret.Rotate(-480, 500, Turret.RotateMode.ABSOLUTE);
+            }
 
-            telemetry.addData("Bruv", extimu.getAngularOrientation());
+            else
+            {
+                bot.turret.Rotate(0, 500, Turret.RotateMode.ABSOLUTE);
+            }
+
             telemetry.update();
         }
 
