@@ -91,7 +91,7 @@ public class Bot {
         BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
 
         // Configuring imu settings
-        IMUparameters.angleUnit            = BNO055IMU.AngleUnit.DEGREES;
+        IMUparameters.angleUnit            = BNO055IMU.AngleUnit.RADIANS;
         IMUparameters.accelUnit            = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         IMUparameters.calibrationDataFile  = "BNO055IMUCalibration.json";
         IMUparameters.loggingEnabled       = true;
@@ -125,7 +125,7 @@ public class Bot {
     // Rechecks the imu and updates the position data of the bot object to avoid needing to access the imu directly
     public void UpdateIMUData (AxesReference frameOfReference, AxesOrder order)
     {
-        orientation = imu.getAngularOrientation(frameOfReference, order, AngleUnit.DEGREES);
+        orientation = imu.getAngularOrientation(frameOfReference, order, AngleUnit.RADIANS);
         acceleration = imu.getLinearAcceleration();
     }
 

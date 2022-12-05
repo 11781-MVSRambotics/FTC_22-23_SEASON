@@ -5,6 +5,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.teamcode.Bot;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Turret;
@@ -24,7 +27,7 @@ public class CompTeleOp extends LinearOpMode
         Bot bot = new Bot(hardwareMap);
         MecanumDrive chassis = bot.chassis;
         Turret turret = bot.turret;
-        double initialRobotAngle = bot.imu.getAngularOrientation().firstAngle;
+
 
 
         /*
@@ -47,16 +50,29 @@ public class CompTeleOp extends LinearOpMode
 
         waitForStart();
 
+        bot.UpdateIMUData(AxesReference.EXTRINSIC, AxesOrder.XYZ);
+        double initialRobotAngle = bot.orientation.firstAngle;
+
         while(opModeIsActive())
         {
-            double joyStickAngle = Math.atan(gamepad1.left_stick_y / gamepad1.left_stick_x);
+            bot.UpdateIMUData(AxesReference.EXTRINSIC, AxesOrder.XYZ);
+            double joystickAngle = 0;
+            if (gamepad1.left_stick_x > 0) {
+                joystickAngle = Math.atan(gamepad1.left_stick_y / gamepad1.left_stick_x);
+            }
+            else {
+                joystickAngle = Math.atan(gamepad1.left_stick_y / gamepad1.left_stick_x) + (Math.PI / 2);
+            }
             double robotAngle = bot.orientation.firstAngle - initialRobotAngle;
-            double properAngle = robotAngle - joyStickAngle;
+            double properAngle = robotAngle - joystickAngle;
             double moveX = Math.cos(properAngle * Math.PI/180);
             double moveY = Math.sin(properAngle * Math.PI/180);
-            telemetry.addData("joystick angle", joyStickAngle);
+            telemetry.addData("Gyro", bot.orientation.firstAngle);
+            telemetry.addData("joystick angle", joystickAngle);
+            telemetry.addData("initial angle", initialRobotAngle);
             telemetry.addData("robot angle", robotAngle);
             telemetry.addData("proper angle", properAngle);
+            telemetry.addData("RSX", gamepad1.right_stick_x);
 
 
             chassis.Move(new Vector2D(moveX, moveY), gamepad1.right_stick_x, 1);
