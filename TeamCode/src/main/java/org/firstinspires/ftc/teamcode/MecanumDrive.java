@@ -1,15 +1,24 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.utils.Vector2D;
 
+// This class contains all the code required for traversing the field in both Auto and TeleOp
+// An instance of this class is automatically created and initialized as a component of the Bot class
 public class MecanumDrive
 {
+    // Instance variables referencing the chassis' motors
     public DcMotorEx FrontRightWheel, FrontLeftWheel, BackRightWheel, BackLeftWheel;
 
+    //
     public MecanumDrive(DcMotorEx FrontRightMotor, DcMotorEx FrontLeftMotor, DcMotorEx BackRightMotor, DcMotorEx BackLeftMotor)
     {
+        // Reversing the necessary motors so that the signs of power values match rotational direction
+        FrontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        BackLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
         this.FrontRightWheel = FrontRightMotor;
         this.FrontLeftWheel = FrontLeftMotor;
         this.BackRightWheel = BackRightMotor;

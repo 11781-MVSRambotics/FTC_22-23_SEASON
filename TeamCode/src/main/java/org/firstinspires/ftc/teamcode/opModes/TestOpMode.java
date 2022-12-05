@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.Bot;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Turret;
 import org.firstinspires.ftc.teamcode.utils.PoleDetectionPipeline;
 import org.firstinspires.ftc.teamcode.utils.Vector2D;
@@ -21,6 +22,9 @@ public class TestOpMode extends LinearOpMode
     public void runOpMode()
     {
         Bot bot = new Bot(hardwareMap);
+
+        MecanumDrive chassis = bot.chassis;
+        Turret turret = bot.turret;
 
         /*
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
@@ -44,30 +48,15 @@ public class TestOpMode extends LinearOpMode
 
         while(opModeIsActive())
         {
-            bot.chassis.Move(new Vector2D(gamepad1.left_stick_x, gamepad1.left_stick_y), gamepad1.right_stick_x, 1);
-
-            if (gamepad1.right_trigger != 0)
-            {
-                bot.turret.Extend(1000, 2000, Turret.ExtendMode.ABSOLUTE);
-            }
-            else
-            {
-                bot.turret.Extend(0, 2000, Turret.ExtendMode.ABSOLUTE);
-            }
+            chassis.Move(new Vector2D(gamepad1.left_stick_x, gamepad1.left_stick_y), gamepad1.right_stick_x, 1);
 
             if (gamepad1.right_bumper)
             {
-                bot.turret.Rotate(480, 500, Turret.RotateMode.ABSOLUTE);
+                turret.Rotate(1, 1000, Turret.RotateMode.RELATIVE);
             }
-
             else if (gamepad1.left_bumper)
             {
-                bot.turret.Rotate(-480, 500, Turret.RotateMode.ABSOLUTE);
-            }
-
-            else
-            {
-                bot.turret.Rotate(0, 500, Turret.RotateMode.ABSOLUTE);
+                turret.Rotate(-1, 1000, Turret.RotateMode.RELATIVE);
             }
 
             telemetry.update();

@@ -38,7 +38,8 @@ public class Turret {
     {
         //Convert to encoder ticks
         //1120 encoder ticks per revolution of the output shaft
-        int encoder_value = degrees * (1120 / 360);
+        //5:1 gear ratio
+        int encoder_value = degrees * (1120 / 360) * 5;
 
         if (mode == RotateMode.ABSOLUTE)
         {

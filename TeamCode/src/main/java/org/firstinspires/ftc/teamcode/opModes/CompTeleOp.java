@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.Bot;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Turret;
 import org.firstinspires.ftc.teamcode.utils.PoleDetectionPipeline;
 import org.firstinspires.ftc.teamcode.utils.Vector2D;
@@ -21,6 +22,10 @@ public class CompTeleOp extends LinearOpMode
     public void runOpMode()
     {
         Bot bot = new Bot(hardwareMap);
+        MecanumDrive chassis = bot.chassis;
+        Turret turret = bot.turret;
+        double initialRobotAngle = bot.imu.getAngularOrientation().firstAngle;
+
 
         /*
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
@@ -44,34 +49,25 @@ public class CompTeleOp extends LinearOpMode
 
         while(opModeIsActive())
         {
-            bot.chassis.Move(new Vector2D(gamepad1.left_stick_x, -gamepad1.left_stick_y), gamepad1.right_stick_x, 1);
+            double joyStickAngle = Math.atan(gamepad1.left_stick_y / gamepad1.left_stick_x);
+            double robotAngle = bot.orientation.firstAngle - initialRobotAngle;
+            double properAngle = robotAngle - joyStickAngle;
+            double moveX = Math.cos(properAngle * Math.PI/180);
+            double moveY = Math.sin(properAngle * Math.PI/180);
+            telemetry.addData("joystick angle", joyStickAngle);
+            telemetry.addData("robot angle", robotAngle);
+            telemetry.addData("proper angle", properAngle);
 
-            // bot.chassis.BackRightWheel.setPower(gamepad1.left_stick_x); //b
-            // bot.chassis.BackLeftWheel.setPower(gamepad1.left_stick_y); //b
-            // bot.chassis.FrontRightWheel.setPower(gamepad1.right_stick_x);
-            // bot.chassis.FrontLeftWheel.setPower(gamepad1.right_stick_y);
-            if (gamepad1.right_trigger != 0)
-            {
-                bot.turret.Extend(1000, 2000, Turret.ExtendMode.ABSOLUTE);
-            }
-            else
-            {
-                bot.turret.Extend(0, 2000, Turret.ExtendMode.ABSOLUTE);
-            }
+
+            chassis.Move(new Vector2D(moveX, moveY), gamepad1.right_stick_x, 1);
 
             if (gamepad1.right_bumper)
             {
-                bot.turret.Rotate(480, 500, Turret.RotateMode.ABSOLUTE);
+                turret.Rotate(1, 5000, Turret.RotateMode.RELATIVE);
             }
-
             else if (gamepad1.left_bumper)
             {
-                bot.turret.Rotate(-480, 500, Turret.RotateMode.ABSOLUTE);
-            }
-
-            else
-            {
-                bot.turret.Rotate(0, 500, Turret.RotateMode.ABSOLUTE);
+                turret.Rotate(-1, 5000, Turret.RotateMode.RELATIVE);
             }
 
             telemetry.update();
