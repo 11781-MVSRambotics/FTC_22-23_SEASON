@@ -15,6 +15,7 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
+@SuppressWarnings("unused")
 @TeleOp(name = "Testbench")
 public class TestOpMode extends LinearOpMode
 {

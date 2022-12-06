@@ -77,16 +77,6 @@ public class Bot {
         // Creating a camera object in accordance with library constraints and linking to physical device
         camera = OpenCvCameraFactory.getInstance().createWebcam(hwMap.get(WebcamName.class, "Eye_Of_Sauron"), cameraMonitorViewId);
 
-        TurretTurnMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        // Configure motors so stop when not under load to avoid coasting during TeleOp
-        FrontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        FrontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        BackLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        BackRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        TurretTurnMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        TurretExtendMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
         // A container class for all the initialization data that eventually gets used to configure the imu
         BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
 
