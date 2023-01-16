@@ -28,48 +28,41 @@ public class CompTeleOp extends LinearOpMode
         MecanumDrive chassis = bot.chassis;
         Turret turret = bot.turret;
 
-
-
-        /*
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        OpenCvWebcam camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Eye_Of_Sauron"), cameraMonitorViewId);
-
-        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-            @Override
-            public void onOpened() {
-                camera.setPipeline(new PoleDetectionPipeline());
-                camera.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT);
-            }
-
-            @Override
-            public void onError(int errorCode) {
-
-            }
-        });
-         */
+        double initialRobotAngle = 0;
+        double joystickAngle;
+        double robotAngle;
+        double properAngle;
+        double moveX;
+        double moveY;
 
         waitForStart();
 
-        bot.UpdateIMUData(AxesReference.EXTRINSIC, AxesOrder.XYZ);
-        double initialRobotAngle = bot.orientation.firstAngle;
+        bot.UpdateIMUData();
+        if (bot.imu.isGyroCalibrated())
+        {
+            bot.UpdateIMUData();
+            initialRobotAngle = 69;
+        }
 
         while(opModeIsActive())
         {
-            bot.UpdateIMUData(AxesReference.EXTRINSIC, AxesOrder.XYZ);
-            double joystickAngle = 0;
             if (gamepad1.left_stick_x > 0) {
                 joystickAngle = Math.atan(gamepad1.left_stick_y / gamepad1.left_stick_x);
             }
             else {
                 joystickAngle = Math.atan(gamepad1.left_stick_y / gamepad1.left_stick_x) + (Math.PI / 2);
             }
-            double robotAngle = bot.orientation.firstAngle - initialRobotAngle;
-            double properAngle = robotAngle - joystickAngle;
-            double moveX = Math.cos(properAngle * Math.PI/180);
-            double moveY = Math.sin(properAngle * Math.PI/180);
+
+            bot.UpdateIMUData();
+
+            robotAngle = bot.orientation.firstAngle - initialRobotAngle;
+            properAngle = robotAngle - joystickAngle;
+            moveX = Math.cos(properAngle * Math.PI/180);
+            moveY = Math.sin(properAngle * Math.PI/180);
+
+            telemetry.addData("initial angle", initialRobotAngle);
             telemetry.addData("Gyro", bot.orientation.firstAngle);
             telemetry.addData("joystick angle", joystickAngle);
-            telemetry.addData("initial angle", initialRobotAngle);
             telemetry.addData("robot angle", robotAngle);
             telemetry.addData("proper angle", properAngle);
             telemetry.addData("RSX", gamepad1.right_stick_x);

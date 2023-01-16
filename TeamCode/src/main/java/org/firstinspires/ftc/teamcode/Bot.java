@@ -123,9 +123,9 @@ public class Bot {
     }
 
     // Rechecks the imu and updates the position data of the bot object to avoid needing to access the imu directly
-    public void UpdateIMUData (AxesReference frameOfReference, AxesOrder order)
+    public void UpdateIMUData ()
     {
-        orientation = imu.getAngularOrientation(frameOfReference, order, AngleUnit.RADIANS);
+        orientation = imu.getAngularOrientation();
         acceleration = imu.getLinearAcceleration();
     }
 
