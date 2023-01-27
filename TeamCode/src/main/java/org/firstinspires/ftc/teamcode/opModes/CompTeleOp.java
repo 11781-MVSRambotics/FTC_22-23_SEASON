@@ -38,11 +38,11 @@ public class CompTeleOp extends LinearOpMode
         waitForStart();
 
         bot.UpdateIMUData();
-        if (bot.imu.isGyroCalibrated())
+        do
         {
             bot.UpdateIMUData();
-            initialRobotAngle = 69;
-        }
+            initialRobotAngle = bot.orientation.firstAngle;
+        } while (!bot.imu.isGyroCalibrated());
 
         while(opModeIsActive())
         {
