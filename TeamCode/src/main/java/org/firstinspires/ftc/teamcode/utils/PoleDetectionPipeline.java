@@ -4,6 +4,7 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -47,39 +48,37 @@ public class PoleDetectionPipeline extends OpenCvPipeline {
         Core.bitwise_and(hsv, colorMask, yellowFiltered);
 
         Mat edges = new Mat();
-        Imgproc.Canny(yellowFiltered, edges, 75, 255);
-
-        Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size((2*2) + 1, (2*2) + 1));
-        for (int i = 0; i <= 10; i++)
-        {
-            /*
-            if (i % 2 == 0)
-            {
-                Imgproc.dilate(edges, edges, kernel);
-            }
-            else
-            {
-                Imgproc.erode(edges, edges, kernel);
-            }
-             */
-            Imgproc.dilate(edges, edges, kernel);
-        }
-
-        List<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat();
-        Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+        List<MatOfPoint> contours = new ArrayList<>();
+        Imgproc.GaussianBlur(yellowFiltered, edges, new Size(15, 15), 0);
+        Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size((2*2) + 1, (2*2) + 1));
+        for (int i = 0; i <= 5; i++) {Imgproc.dilate(yellowFiltered, yellowFiltered, kernel);}
+        for (int i = 0; i <= 5; i++) {Imgproc.erode(yellowFiltered, yellowFiltered, kernel);}
+        Imgproc.Canny(yellowFiltered, edges, 10, 100);
+
+        Imgproc.dilate(edges, edges, kernel);
+
+        Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+
+        double maxVal = 0;
+        int maxValIdx = 0;
+        for (int contourIdx = 0; contourIdx < contours.size(); contourIdx++)
+        {
+            double contourArea = Imgproc.contourArea(contours.get(contourIdx));
+            if (maxVal < contourArea)
+            {
+                maxVal = contourArea;
+                maxValIdx = contourIdx;
+            }
+        }
 
         Mat drawing = Mat.zeros(edges.size(), CvType.CV_8UC3);
-        for (int i = 0; i < contours.size(); i++) {
-            Scalar color = new Scalar(0, 255, 0);
-            Imgproc.drawContours(drawing, contours, i, color, 2, Imgproc.LINE_8, hierarchy, 0, new Point());
-        }
+        Imgproc.drawContours(drawing, contours, maxValIdx, new Scalar(255,255,0), 2);
 
-        Mat output = Mat.zeros(input.size(), CvType.CV_8UC3);
-
-        Core.add(input, drawing, output);
+        MatOfPoint2f contour2f = new MatOfPoint2f( contours.get(maxValIdx).toArray() );
+        Imgproc.minAreaRect(contour2f);
 
         // This frame will be returned to the camera preview
-        return drawing;
+        return contour2f;
     }
 }
