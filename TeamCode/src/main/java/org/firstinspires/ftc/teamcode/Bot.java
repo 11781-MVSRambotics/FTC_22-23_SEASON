@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.robot.Robot;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
@@ -23,6 +24,29 @@ import org.openftc.easyopencv.OpenCvWebcam;
 // It essentially acts as a wrapper for all our methods and functions so that it makes sense as a coherent program
 // An instance of this class is required in every OpMode that you intend to actually use
 public class Bot {
+
+    static class State
+    {
+
+        // Motor
+        public double FrontRightEncoder;
+        public double FrontLeftEncoder;
+        public double BackRightEncoder;
+        public double BackLeftEncoder;
+        public double TurnTableEncoder;
+        public double SlideExtensionEncoder;
+        public double SlideRetractionEncoder;
+
+        // Servo
+        public double ArmEncoder;
+        public double WristEncoder;
+        public double ClawEncoder;
+
+        // Other
+        public double IMUAngle;
+    }
+
+    public State state;
 
     // The two major controllable components of the robot
     // Each of these components will utilize a different Gamepad during TeleOp
@@ -113,10 +137,30 @@ public class Bot {
     }
 
     // Rechecks the imu and updates the position data of the bot object to avoid needing to access the imu directly
-    public void UpdateIMUData (AxesReference frameOfReference, AxesOrder order)
+    public void UpdateIMUData(AxesReference frameOfReference, AxesOrder order)
     {
         orientation = imu.getAngularOrientation(frameOfReference, order, AngleUnit.DEGREES);
         acceleration = imu.getLinearAcceleration();
+    }
+
+    public void UpdateState()
+    {
+        // Motor
+        state.FrontRightEncoder = FrontRightMotor.getCurrentPosition();
+        state.FrontLeftEncoder = FrontLeftMotor.getCurrentPosition();
+        state.BackRightEncoder = BackRightMotor.getCurrentPosition();
+        state.BackLeftEncoder = BackLeftMotor.getCurrentPosition();
+        state.TurnTableEncoder = TurretTurnMotor.getCurrentPosition();
+        state.SlideExtensionEncoder = TurretExtendMotor.getCurrentPosition();
+        state.SlideRetractionEncoder = 0;
+
+        // Servo
+        state.ArmEncoder = 0;
+        state.WristEncoder = 0;
+        state.ClawEncoder = 0;
+
+        // Other
+        state.IMUAngle = imu.getAngularOrientation().firstAngle;
     }
 
 }

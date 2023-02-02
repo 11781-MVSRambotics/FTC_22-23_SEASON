@@ -4,7 +4,10 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+import org.firstinspires.ftc.teamcode.utils.PIDController;
 import org.firstinspires.ftc.teamcode.utils.Vector2D;
+
+import java.util.Vector;
 
 // This class contains all the code required for traversing the field in both Auto and TeleOp
 // An instance of this class is automatically created and initialized as a component of the Bot class
@@ -33,15 +36,29 @@ public class MecanumDrive
         this.BackLeftWheel = BackLeftMotor;
     }
 
-    // Autonomous wrapper for the move function
-    // This might be useless because we may do this in the OpMode
-    public void MoveAuto(double angle, double yaw, double power)
-    {
-        // Make the angle radians
-        angle *= Math.PI/180;
 
-        // Chain call the normal move function
-        Move(new Vector2D(Math.cos(angle), Math.sin(angle)), yaw, power);
+    public Bot.State CalulateTargetState(Vector2D input, Bot.State currentState)
+    {
+
+
+        return new Bot.State();
+    }
+
+    public void MoveAuto(Bot.State targetState, Bot bot)
+    {
+        FrontRightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        FrontLeftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        BackRightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        BackLeftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        while (targetState != bot.state)
+        {
+            FrontRightWheel.setPower(PIDController.Calculate(targetState.FrontRightEncoder, bot.state.FrontRightEncoder));
+            FrontLeftWheel.setPower(PIDController.Calculate(targetState.FrontLeftEncoder, bot.state.FrontLeftEncoder));
+            BackRightWheel.setPower(PIDController.Calculate(targetState.BackRightEncoder, bot.state.BackRightEncoder));
+            BackLeftWheel.setPower(PIDController.Calculate(targetState.BackLeftEncoder, bot.state.BackLeftEncoder));
+            bot.UpdateState();
+        }
     }
 
     // Main function for powering the motors
