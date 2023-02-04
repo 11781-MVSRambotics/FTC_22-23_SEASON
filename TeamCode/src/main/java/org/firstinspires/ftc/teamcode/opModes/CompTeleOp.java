@@ -68,11 +68,15 @@ public class CompTeleOp extends LinearOpMode
             // Turret Controller
             if (gamepad2.right_bumper)
             {
-                turret.Rotate(1, 5000, Turret.RotateMode.RELATIVE);
+                turret.Rotate(4, 5000, Turret.RotateMode.RELATIVE);
             }
             else if (gamepad2.left_bumper)
             {
-                turret.Rotate(-1, 5000, Turret.RotateMode.RELATIVE);
+                turret.Rotate(-4, 5000, Turret.RotateMode.RELATIVE);
+            }
+            else
+            {
+                turret.TurnMotor.setPower(0);
             }
 
             if (gamepad2.right_trigger > 0 && !bot.SlideLimitSwitch.getState())
@@ -88,15 +92,15 @@ public class CompTeleOp extends LinearOpMode
                 turret.ExtendMotor.setPower(0);
             }
 
-            if (gamepad2.dpad_up)
-            {
-                bot.RightArmServo.setPower(1);
-                bot.LeftArmServo.setPower(-1);
-            }
-            else if (gamepad2.dpad_down)
+            if (gamepad1.dpad_up)
             {
                 bot.RightArmServo.setPower(-1);
                 bot.LeftArmServo.setPower(1);
+            }
+            else if (gamepad1.dpad_down)
+            {
+                bot.RightArmServo.setPower(1);
+                bot.LeftArmServo.setPower(-1);
             }
             else
             {

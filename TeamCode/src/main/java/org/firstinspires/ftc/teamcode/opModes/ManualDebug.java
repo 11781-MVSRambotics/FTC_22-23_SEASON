@@ -17,15 +17,13 @@ public class ManualDebug extends LinearOpMode{
     public void runOpMode()
     {
         Servo ClawServo = hardwareMap.get(Servo.class, "ClawServo");
-        CRServo LeftArmServo = hardwareMap.get(CRServo.class, "LeftArmServo");
-        CRServo RightArmServo = hardwareMap.get(CRServo.class, "RightArmServo");
 
         waitForStart();
 
         while (opModeIsActive())
         {
-            LeftArmServo.setPower(1);
-            RightArmServo.setPower(-1);
+            if (gamepad2.a) ClawServo.setPosition(1);
+            if (gamepad2.b) ClawServo.setPosition(0);
 
             telemetry.update();
         }
