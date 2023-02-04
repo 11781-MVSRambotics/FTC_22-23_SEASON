@@ -1,10 +1,14 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.transition.Slide;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.robot.Robot;
@@ -55,7 +59,8 @@ public class Bot {
 
     // Individual controllable hardware components
     public DcMotorEx FrontRightMotor, FrontLeftMotor, BackRightMotor, BackLeftMotor, TurretTurnMotor, TurretExtendMotor;
-    public Servo CameraServo, ArmServo, ClawServo;
+    public Servo ClawServo;
+    public CRServo LeftArmServo, RightArmServo;
 
     // Object references for the internal sensor array
     public BNO055IMU imu;
@@ -64,6 +69,8 @@ public class Bot {
 
     // Webcam object for accessing camera data
     public OpenCvWebcam camera;
+
+    public DigitalChannel SlideLimitSwitch;
 
     // Constructor that runs each time an object belonging to this class is created
     // All code necessary for startup (pre-opmode) is placed here
@@ -79,9 +86,9 @@ public class Bot {
         TurretTurnMotor = hwMap.get(DcMotorEx.class, "TurretSpinMotor");
         TurretExtendMotor = hwMap.get(DcMotorEx.class, "TurretExtendMotor");
 
-        //CameraServo = hwMap.get(Servo.class, "CameraServo");
-        //ArmServo = hwMap.get(Servo.class, "ArmServo");
-        //ClawServo = hwMap.get(Servo.class, "ClawServo");
+        ClawServo = hwMap.get(Servo.class, "ClawServo");
+        LeftArmServo = hwMap.get(CRServo.class, "LeftArmServo");
+        RightArmServo = hwMap.get(CRServo.class, "RightArmServo");
 
         // Instantiating chassis object
         // All global movement code resides in this object
@@ -100,6 +107,8 @@ public class Bot {
         int cameraMonitorViewId = hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName());
         // Creating a camera object in accordance with library constraints and linking to physical device
         camera = OpenCvCameraFactory.getInstance().createWebcam(hwMap.get(WebcamName.class, "Eye_Of_Sauron"), cameraMonitorViewId);
+
+        SlideLimitSwitch = hwMap.get(DigitalChannel.class, "SlideUpperLimitSwitch");
 
         // A container class for all the initialization data that eventually gets used to configure the imu
         BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
