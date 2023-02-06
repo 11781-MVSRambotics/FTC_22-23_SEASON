@@ -63,6 +63,61 @@ public class MecanumDrive
         return reference;
     }
 
+    public void RotateAutoBasic(double angle, double power)
+    {
+        double encoderValue = ((angle * (28.7 * Math.PI)) / (9.6 * Math.PI)) * 537.7;
+
+        FrontRightWheel.setTargetPosition((int) (FrontRightWheel.getCurrentPosition() - encoderValue));
+        FrontLeftWheel.setTargetPosition((int) (FrontLeftWheel.getCurrentPosition() + encoderValue));
+        BackRightWheel.setTargetPosition((int) (BackRightWheel.getCurrentPosition() - encoderValue));
+        BackLeftWheel.setTargetPosition((int) (BackLeftWheel.getCurrentPosition() + encoderValue));
+
+        while ( Math.abs(FrontRightWheel.getTargetPosition() - FrontRightWheel.getCurrentPosition()) < 30
+                &&
+                Math.abs(FrontLeftWheel.getTargetPosition() - FrontLeftWheel.getCurrentPosition()) < 30
+                &&
+                Math.abs(BackRightWheel.getTargetPosition() - BackRightWheel.getCurrentPosition()) < 30
+                &&
+                Math.abs(BackLeftWheel.getTargetPosition() - BackLeftWheel.getCurrentPosition()) < 30
+        )
+        {
+            FrontRightWheel.setPower(power);
+            FrontLeftWheel.setPower(power);
+            BackRightWheel.setPower(power);
+            BackLeftWheel.setPower(power);
+        }
+    }
+
+    public void DriveAutoBasic (double distance, double power)
+    {
+        double encoderValue = (distance / (9.6 * Math.PI)) * 537.7;
+
+        FrontRightWheel.setTargetPosition((int) (FrontRightWheel.getCurrentPosition() + encoderValue));
+        FrontLeftWheel.setTargetPosition((int) (FrontLeftWheel.getCurrentPosition() + encoderValue));
+        BackRightWheel.setTargetPosition((int) (BackRightWheel.getCurrentPosition() + encoderValue));
+        BackLeftWheel.setTargetPosition((int) (BackLeftWheel.getCurrentPosition() + encoderValue));
+
+        FrontRightWheel.setPower(power);
+        FrontLeftWheel.setPower(power);
+        BackRightWheel.setPower(power);
+        BackLeftWheel.setPower(power);
+
+        while ( Math.abs(FrontRightWheel.getTargetPosition() - FrontRightWheel.getCurrentPosition()) < 30
+                &&
+                Math.abs(FrontLeftWheel.getTargetPosition() - FrontLeftWheel.getCurrentPosition()) < 30
+                &&
+                Math.abs(BackRightWheel.getTargetPosition() - BackRightWheel.getCurrentPosition()) < 30
+                &&
+                Math.abs(BackLeftWheel.getTargetPosition() - BackLeftWheel.getCurrentPosition()) < 30
+        )
+        {
+            FrontRightWheel.setPower(power);
+            FrontLeftWheel.setPower(power);
+            BackRightWheel.setPower(power);
+            BackLeftWheel.setPower(power);
+        }
+    }
+
     public void MoveAuto(Vector2D input, Bot bot)
     {
         PIDController PID = new PIDController(1, 1, 1);

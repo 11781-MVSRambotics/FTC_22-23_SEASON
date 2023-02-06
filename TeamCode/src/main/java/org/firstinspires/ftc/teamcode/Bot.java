@@ -59,8 +59,7 @@ public class Bot {
 
     // Individual controllable hardware components
     public DcMotorEx FrontRightMotor, FrontLeftMotor, BackRightMotor, BackLeftMotor, TurretTurnMotor, TurretExtendMotor;
-    public Servo ClawServo;
-    public CRServo LeftArmServo, RightArmServo;
+    public CRServo LeftArmServo, RightArmServo, ClawServo;
 
     // Object references for the internal sensor array
     public BNO055IMU imu;
@@ -86,7 +85,7 @@ public class Bot {
         TurretTurnMotor = hwMap.get(DcMotorEx.class, "TurretSpinMotor");
         TurretExtendMotor = hwMap.get(DcMotorEx.class, "TurretExtendMotor");
 
-        ClawServo = hwMap.get(Servo.class, "ClawServo");
+        ClawServo = hwMap.get(CRServo.class, "ClawServo");
         LeftArmServo = hwMap.get(CRServo.class, "LeftArmServo");
         RightArmServo = hwMap.get(CRServo.class, "RightArmServo");
 

@@ -21,7 +21,9 @@ public class CompTeleOp extends LinearOpMode
         Turret turret = bot.turret;
 
         turret.ExtendMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        turret.TurnMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         turret.ExtendMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        turret.TurnMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         double initialAngle = 0;
         while (!bot.imu.isGyroCalibrated())
@@ -35,7 +37,7 @@ public class CompTeleOp extends LinearOpMode
         while(opModeIsActive()) {
             Vector2D input = Vector2D.ConstructFromComponents(gamepad1.left_stick_x, gamepad1.left_stick_y);
 
-            input = Vector2D.rotate(input, -(((bot.imu.getAngularOrientation().firstAngle - initialAngle - 90) / 180) * Math.PI));
+            input = Vector2D.rotate(input, -(((bot.imu.getAngularOrientation().firstAngle - initialAngle + 90) / 180) * Math.PI));
 
             // Chassis controller
             chassis.Move(input, gamepad1.right_stick_x, 1);
@@ -66,13 +68,13 @@ public class CompTeleOp extends LinearOpMode
             }
 
             // Turret Controller
-            if (gamepad2.right_bumper)
+            if (gamepad1.right_trigger > 0)
             {
-                turret.Rotate(4, 5000, Turret.RotateMode.RELATIVE);
+                turret.TurnMotor.setPower(gamepad1.right_trigger);
             }
-            else if (gamepad2.left_bumper)
+            else if (gamepad1.left_trigger > 0)
             {
-                turret.Rotate(-4, 5000, Turret.RotateMode.RELATIVE);
+                turret.TurnMotor.setPower(-gamepad1.left_trigger);
             }
             else
             {
@@ -92,12 +94,12 @@ public class CompTeleOp extends LinearOpMode
                 turret.ExtendMotor.setPower(0);
             }
 
-            if (gamepad1.dpad_up)
+            if (gamepad2.dpad_up)
             {
                 bot.RightArmServo.setPower(-1);
                 bot.LeftArmServo.setPower(1);
             }
-            else if (gamepad1.dpad_down)
+            else if (gamepad2.dpad_down)
             {
                 bot.RightArmServo.setPower(1);
                 bot.LeftArmServo.setPower(-1);
@@ -108,13 +110,15 @@ public class CompTeleOp extends LinearOpMode
                 bot.LeftArmServo.setPower(0);
             }
 
-            if (gamepad2.a) bot.ClawServo.setPosition(1);
-            if (gamepad2.b) bot.ClawServo.setPosition(0);
+            if (gamepad2.a) bot.ClawServo.setPower(-1);
+            else if (gamepad2.b) bot.ClawServo.setPower(1);
+            else bot.ClawServo.setPower(0);
 
             telemetry.addData("LimitSwitch", bot.SlideLimitSwitch.getState());
             telemetry.addData("Initial Angle: ", initialAngle);
             telemetry.addData("Current bot heading", bot.imu.getAngularOrientation().firstAngle);
             telemetry.addData("Real angle", bot.imu.getAngularOrientation().firstAngle - initialAngle);
+            telemetry.addData("Claw power", bot.ClawServo.getPower());
             telemetry.update();
         }
 
