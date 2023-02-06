@@ -17,9 +17,8 @@ public class ManualDebug extends LinearOpMode{
     public void runOpMode()
     {
 
-        CRServo LeftArmServo = hardwareMap.get(CRServo.class, "LeftArmServo");
-        CRServo RightArmServo = hardwareMap.get(CRServo.class, "RightArmServo");
-
+        DcMotorEx ExtendMotorLeft = hardwareMap.get(DcMotorEx.class, "ExtendMotorLeft");
+        DcMotorEx ExtendMotorRight = hardwareMap.get(DcMotorEx.class, "ExtendMotorRight");
 
         waitForStart();
 
@@ -27,23 +26,19 @@ public class ManualDebug extends LinearOpMode{
         {
             if (gamepad1.dpad_up)
             {
-                RightArmServo.setPower(-1);
-                LeftArmServo.setPower(1);
+                ExtendMotorLeft.setPower(-1);
+                ExtendMotorRight.setPower(1);
             }
             else if (gamepad1.dpad_down)
             {
-                RightArmServo.setPower(1);
-                LeftArmServo.setPower(-1);
+                ExtendMotorLeft.setPower(1);
+                ExtendMotorRight.setPower(-1);
             }
             else
             {
-                RightArmServo.setPower(0);
-                LeftArmServo.setPower(0);
+                ExtendMotorLeft.setPower(0);
+                ExtendMotorRight.setPower(0);
             }
-
-            telemetry.addData("LeftArm Power: ", LeftArmServo.getPower());
-            telemetry.addData("RightArm Power: ", RightArmServo.getPower());
-
             telemetry.update();
         }
     }
