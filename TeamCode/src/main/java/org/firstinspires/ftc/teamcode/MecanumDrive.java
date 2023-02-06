@@ -1,10 +1,16 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.app.PendingIntent;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.robot.RobotState;
 
+import org.firstinspires.ftc.teamcode.utils.PIDController;
 import org.firstinspires.ftc.teamcode.utils.Vector2D;
+
+import java.util.Vector;
 
 // This class contains all the code required for traversing the field in both Auto and TeleOp
 // An instance of this class is automatically created and initialized as a component of the Bot class
@@ -33,15 +39,133 @@ public class MecanumDrive
         this.BackLeftWheel = BackLeftMotor;
     }
 
-    // Autonomous wrapper for the move function
-    // This might be useless because we may do this in the OpMode
-    public void MoveAuto(double angle, double yaw, double power)
+    public Bot.State CalculateRotatedState(Vector2D input, Bot.State reference)
     {
-        // Make the angle radians
-        angle *= Math.PI/180;
+        double encoderValue = ((input.angle * (28.7 * Math.PI)) / (9.6 * Math.PI)) * 537.7;
 
-        // Chain call the normal move function
-        Move(new Vector2D(Math.cos(angle), Math.sin(angle)), yaw, power);
+        reference.FrontRightEncoder -= encoderValue;
+        reference.FrontLeftEncoder += encoderValue;
+        reference.BackRightEncoder -= encoderValue;
+        reference.BackLeftEncoder += encoderValue;
+
+        return reference;
+    }
+
+    public Bot.State CalculateTranslatedState(Vector2D input, Bot.State reference)
+    {
+        double encoderValue = (input.magnitude / (9.6 * Math.PI)) * 537.7;
+
+        reference.FrontRightEncoder += encoderValue;
+        reference.FrontLeftEncoder += encoderValue;
+        reference.BackRightEncoder += encoderValue;
+        reference.BackLeftEncoder += encoderValue;
+
+        return reference;
+    }
+
+    public void RotateAutoBasic(double angle, double power)
+    {
+        double encoderValue = ((angle * (28.7 * Math.PI)) / (9.6 * Math.PI)) * 537.7;
+
+        FrontRightWheel.setTargetPosition((int) (FrontRightWheel.getCurrentPosition() - encoderValue));
+        FrontLeftWheel.setTargetPosition((int) (FrontLeftWheel.getCurrentPosition() + encoderValue));
+        BackRightWheel.setTargetPosition((int) (BackRightWheel.getCurrentPosition() - encoderValue));
+        BackLeftWheel.setTargetPosition((int) (BackLeftWheel.getCurrentPosition() + encoderValue));
+
+        while ( Math.abs(FrontRightWheel.getTargetPosition() - FrontRightWheel.getCurrentPosition()) < 30
+                &&
+                Math.abs(FrontLeftWheel.getTargetPosition() - FrontLeftWheel.getCurrentPosition()) < 30
+                &&
+                Math.abs(BackRightWheel.getTargetPosition() - BackRightWheel.getCurrentPosition()) < 30
+                &&
+                Math.abs(BackLeftWheel.getTargetPosition() - BackLeftWheel.getCurrentPosition()) < 30
+        )
+        {
+            FrontRightWheel.setPower(power);
+            FrontLeftWheel.setPower(power);
+            BackRightWheel.setPower(power);
+            BackLeftWheel.setPower(power);
+        }
+    }
+
+    public void DriveAutoBasic (double distance, double power)
+    {
+        double encoderValue = (distance / (9.6 * Math.PI)) * 537.7;
+
+        FrontRightWheel.setTargetPosition((int) (FrontRightWheel.getCurrentPosition() + encoderValue));
+        FrontLeftWheel.setTargetPosition((int) (FrontLeftWheel.getCurrentPosition() + encoderValue));
+        BackRightWheel.setTargetPosition((int) (BackRightWheel.getCurrentPosition() + encoderValue));
+        BackLeftWheel.setTargetPosition((int) (BackLeftWheel.getCurrentPosition() + encoderValue));
+
+        FrontRightWheel.setPower(power);
+        FrontLeftWheel.setPower(power);
+        BackRightWheel.setPower(power);
+        BackLeftWheel.setPower(power);
+
+        while ( Math.abs(FrontRightWheel.getTargetPosition() - FrontRightWheel.getCurrentPosition()) < 30
+                &&
+                Math.abs(FrontLeftWheel.getTargetPosition() - FrontLeftWheel.getCurrentPosition()) < 30
+                &&
+                Math.abs(BackRightWheel.getTargetPosition() - BackRightWheel.getCurrentPosition()) < 30
+                &&
+                Math.abs(BackLeftWheel.getTargetPosition() - BackLeftWheel.getCurrentPosition()) < 30
+        )
+        {
+            FrontRightWheel.setPower(power);
+            FrontLeftWheel.setPower(power);
+            BackRightWheel.setPower(power);
+            BackLeftWheel.setPower(power);
+        }
+    }
+
+    public void MoveAuto(Vector2D input, Bot bot)
+    {
+        PIDController PID = new PIDController(1, 1, 1);
+
+        Bot.State targetState = bot.state;
+
+        FrontRightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        FrontLeftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        BackRightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        BackLeftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        if (input.angle != 0)
+        {
+            targetState = CalculateRotatedState(input, bot.state);
+        }
+        else if (input.magnitude != 0)
+        {
+            targetState = CalculateTranslatedState(input, bot.state);
+        }
+        else return;
+
+        while (!TargetStateReached(targetState, bot.state, 10))
+        {
+            double max;
+            double frontLeftPower  = PID.Calculate(targetState.FrontRightEncoder, bot.state.FrontRightEncoder);
+            double frontRightPower = PID.Calculate(targetState.FrontRightEncoder, bot.state.FrontRightEncoder);
+            double backLeftPower   = PID.Calculate(targetState.FrontRightEncoder, bot.state.FrontRightEncoder);
+            double backRightPower  = PID.Calculate(targetState.FrontRightEncoder, bot.state.FrontRightEncoder);
+
+            // Check which motor has received the maximum power value
+            max = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
+            max = Math.max(max, Math.abs(backLeftPower));
+            max = Math.max(max, Math.abs(backRightPower));
+
+            // Normalize all motor powers as a percentage of the maximum
+            if (max > 1.0) {
+                frontLeftPower  /= max;
+                frontRightPower /= max;
+                backLeftPower   /= max;
+                backRightPower  /= max;
+            }
+
+            FrontRightWheel.setPower(frontRightPower);
+            FrontLeftWheel.setPower(frontLeftPower);
+            BackRightWheel.setPower(backRightPower);
+            BackLeftWheel.setPower(backLeftPower);
+            bot.UpdateState();
+        }
     }
 
     // Main function for powering the motors
@@ -82,5 +206,17 @@ public class MecanumDrive
         FrontLeftWheel.setPower(frontLeftPower);
         BackRightWheel.setPower(backRightPower);
         BackLeftWheel.setPower(backLeftPower);
+    }
+
+    public boolean TargetStateReached(Bot.State target, Bot.State current, double buffer)
+    {
+        return
+                Math.abs(target.FrontRightEncoder - current.FrontRightEncoder) < buffer
+                &&
+                Math.abs(target.FrontLeftEncoder - current.FrontLeftEncoder) < buffer
+                &&
+                Math.abs(target.BackRightEncoder - current.BackRightEncoder) < buffer
+                &&
+                Math.abs(target.BackLeftEncoder - current.BackLeftEncoder) < buffer;
     }
 }

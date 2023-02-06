@@ -1,12 +1,17 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.transition.Slide;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.robot.Robot;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
@@ -24,6 +29,29 @@ import org.openftc.easyopencv.OpenCvWebcam;
 // An instance of this class is required in every OpMode that you intend to actually use
 public class Bot {
 
+    static class State
+    {
+
+        // Motor
+        public double FrontRightEncoder;
+        public double FrontLeftEncoder;
+        public double BackRightEncoder;
+        public double BackLeftEncoder;
+        public double TurnTableEncoder;
+        public double SlideExtensionEncoder;
+        public double SlideRetractionEncoder;
+
+        // Servo
+        public double ArmEncoder;
+        public double WristEncoder;
+        public double ClawEncoder;
+
+        // Other
+        public double IMUAngle;
+    }
+
+    public State state;
+
     // The two major controllable components of the robot
     // Each of these components will utilize a different Gamepad during TeleOp
     public MecanumDrive chassis;
@@ -31,7 +59,7 @@ public class Bot {
 
     // Individual controllable hardware components
     public DcMotorEx FrontRightMotor, FrontLeftMotor, BackRightMotor, BackLeftMotor, TurretTurnMotor, TurretExtendMotor;
-    public Servo CameraServo, ArmServo, ClawServo;
+    public CRServo LeftArmServo, RightArmServo, ClawServo;
 
     // Object references for the internal sensor array
     public BNO055IMU imu;
@@ -40,6 +68,8 @@ public class Bot {
 
     // Webcam object for accessing camera data
     public OpenCvWebcam camera;
+
+    public DigitalChannel SlideLimitSwitch;
 
     // Constructor that runs each time an object belonging to this class is created
     // All code necessary for startup (pre-opmode) is placed here
@@ -55,9 +85,9 @@ public class Bot {
         TurretTurnMotor = hwMap.get(DcMotorEx.class, "TurretSpinMotor");
         TurretExtendMotor = hwMap.get(DcMotorEx.class, "TurretExtendMotor");
 
-        //CameraServo = hwMap.get(Servo.class, "CameraServo");
-        //ArmServo = hwMap.get(Servo.class, "ArmServo");
-        //ClawServo = hwMap.get(Servo.class, "ClawServo");
+        ClawServo = hwMap.get(CRServo.class, "ClawServo");
+        LeftArmServo = hwMap.get(CRServo.class, "LeftArmServo");
+        RightArmServo = hwMap.get(CRServo.class, "RightArmServo");
 
         // Instantiating chassis object
         // All global movement code resides in this object
@@ -76,6 +106,8 @@ public class Bot {
         int cameraMonitorViewId = hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName());
         // Creating a camera object in accordance with library constraints and linking to physical device
         camera = OpenCvCameraFactory.getInstance().createWebcam(hwMap.get(WebcamName.class, "Eye_Of_Sauron"), cameraMonitorViewId);
+
+        SlideLimitSwitch = hwMap.get(DigitalChannel.class, "SlideUpperLimitSwitch");
 
         // A container class for all the initialization data that eventually gets used to configure the imu
         BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
@@ -113,10 +145,30 @@ public class Bot {
     }
 
     // Rechecks the imu and updates the position data of the bot object to avoid needing to access the imu directly
-    public void UpdateIMUData (AxesReference frameOfReference, AxesOrder order)
+    public void UpdateIMUData(AxesReference frameOfReference, AxesOrder order)
     {
         orientation = imu.getAngularOrientation(frameOfReference, order, AngleUnit.DEGREES);
         acceleration = imu.getLinearAcceleration();
+    }
+
+    public void UpdateState()
+    {
+        // Motor
+        state.FrontRightEncoder = FrontRightMotor.getCurrentPosition();
+        state.FrontLeftEncoder = FrontLeftMotor.getCurrentPosition();
+        state.BackRightEncoder = BackRightMotor.getCurrentPosition();
+        state.BackLeftEncoder = BackLeftMotor.getCurrentPosition();
+        state.TurnTableEncoder = TurretTurnMotor.getCurrentPosition();
+        state.SlideExtensionEncoder = TurretExtendMotor.getCurrentPosition();
+        state.SlideRetractionEncoder = 0;
+
+        // Servo
+        state.ArmEncoder = 0;
+        state.WristEncoder = 0;
+        state.ClawEncoder = 0;
+
+        // Other
+        state.IMUAngle = imu.getAngularOrientation().firstAngle;
     }
 
 }
