@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Bot;
@@ -17,33 +18,39 @@ public class ManualDebug extends LinearOpMode{
     public void runOpMode()
     {
 
-        CRServo LeftArmServo = hardwareMap.get(CRServo.class, "LeftArmServo");
-        CRServo RightArmServo = hardwareMap.get(CRServo.class, "RightArmServo");
+        DigitalChannel SlideLimitSwitch = hardwareMap.get(DigitalChannel.class, "SlideLimiter");
+
+        DcMotorEx turretLeft = hardwareMap.get(DcMotorEx.class, "ExtendMotorLeft");
+        DcMotorEx turretRight = hardwareMap.get(DcMotorEx.class, "ExtendMotorRight");
+
+        turretLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        turretRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        turretLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        turretRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
         waitForStart();
 
         while (opModeIsActive())
         {
-            if (gamepad1.dpad_up)
+            if (gamepad1.right_trigger > 0)
             {
-                RightArmServo.setPower(-1);
-                LeftArmServo.setPower(1);
+                turretLeft.setPower(gamepad1.right_trigger);
+                turretRight.setPower(-gamepad1.right_trigger);
             }
-            else if (gamepad1.dpad_down)
+            else if (gamepad1.left_trigger > 0)
             {
-                RightArmServo.setPower(1);
-                LeftArmServo.setPower(-1);
+                turretLeft.setPower(-gamepad1.left_trigger);
+                turretRight.setPower(gamepad1.left_trigger);
             }
             else
             {
-                RightArmServo.setPower(0);
-                LeftArmServo.setPower(0);
+                turretLeft.setPower(0);
+                turretRight.setPower(0);
             }
 
-            telemetry.addData("LeftArm Power: ", LeftArmServo.getPower());
-            telemetry.addData("RightArm Power: ", RightArmServo.getPower());
-
+            telemetry.addData("Limit Switch Value: ", SlideLimitSwitch.getState());
             telemetry.update();
         }
     }
