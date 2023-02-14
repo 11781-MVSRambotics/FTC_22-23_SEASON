@@ -44,21 +44,21 @@ public class CompTeleOp extends LinearOpMode
 
             if (gamepad1.dpad_up)
             {
-                chassis.Move(Vector2D.ConstructFromAngleAndMag((Math.PI/2), 1), 0, 0.1);
+                chassis.Move(Vector2D.ConstructFromAngleAndMag((Math.PI/2), 2), 0, 0.2);
             }
             else if (gamepad1.dpad_right)
             {
-                chassis.Move(Vector2D.ConstructFromAngleAndMag((0), 1), 0, 0.1);
+                chassis.Move(Vector2D.ConstructFromAngleAndMag((0), 2), 0, 0.2);
 
             }
             else if (gamepad1.dpad_down)
             {
-                chassis.Move(Vector2D.ConstructFromAngleAndMag((3 * Math.PI / 2), 1), 0, 0.1);
+                chassis.Move(Vector2D.ConstructFromAngleAndMag((3 * Math.PI / 2), 2), 0, 0.2);
 
             }
             else if (gamepad1.dpad_left)
             {
-                chassis.Move(Vector2D.ConstructFromAngleAndMag((Math.PI), 1), 0, 0.1);
+                chassis.Move(Vector2D.ConstructFromAngleAndMag((Math.PI), 2), 0, 0.2);
 
             }
 
@@ -68,11 +68,11 @@ public class CompTeleOp extends LinearOpMode
             }
 
             // Turret Controller
-            if (gamepad1.right_trigger > 0)
+            if (gamepad2.right_trigger > 0)
             {
                 turret.TurnMotor.setPower(gamepad1.right_trigger);
             }
-            else if (gamepad1.left_trigger > 0)
+            else if (gamepad2.left_trigger > 0)
             {
                 turret.TurnMotor.setPower(-gamepad1.left_trigger);
             }

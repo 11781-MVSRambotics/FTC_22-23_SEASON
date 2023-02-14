@@ -30,7 +30,7 @@ public class TestOpMode extends LinearOpMode
             public void onOpened() {
                 camera.setPipeline(new PoleDetectionPipeline());
                 camera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
-                camera.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT);
+                camera.startStreaming(1280, 720, OpenCvCameraRotation.SIDEWAYS_RIGHT);
             }
 
             @Override
