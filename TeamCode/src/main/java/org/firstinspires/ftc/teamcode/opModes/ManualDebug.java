@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Bot;
+import org.firstinspires.ftc.teamcode.Turret;
 
 @SuppressWarnings("unused")
 @TeleOp(name = "Debug OpMode")
@@ -17,28 +18,24 @@ public class ManualDebug extends LinearOpMode{
     public void runOpMode()
     {
 
-        DcMotorEx ExtendMotorLeft = hardwareMap.get(DcMotorEx.class, "ExtendMotorLeft");
-        DcMotorEx ExtendMotorRight = hardwareMap.get(DcMotorEx.class, "ExtendMotorRight");
+        Bot bot = new Bot(hardwareMap);
 
         waitForStart();
 
         while (opModeIsActive())
         {
-            if (gamepad1.dpad_up)
+            if (gamepad1.right_bumper)
             {
-                ExtendMotorLeft.setPower(-1);
-                ExtendMotorRight.setPower(1);
+                bot.turret.AddRotationInput(180, Turret.RotateMode.ABSOLUTE);
             }
-            else if (gamepad1.dpad_down)
+            else if (gamepad1.left_bumper)
             {
-                ExtendMotorLeft.setPower(1);
-                ExtendMotorRight.setPower(-1);
+                bot.turret.AddRotationInput(-180, Turret.RotateMode.ABSOLUTE);
             }
-            else
-            {
-                ExtendMotorLeft.setPower(0);
-                ExtendMotorRight.setPower(0);
-            }
+
+
+            bot.Move();
+
             telemetry.update();
         }
     }
