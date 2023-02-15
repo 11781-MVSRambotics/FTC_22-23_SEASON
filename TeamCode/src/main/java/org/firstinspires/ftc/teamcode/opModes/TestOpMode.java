@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opModes;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -31,6 +32,7 @@ public class TestOpMode extends LinearOpMode
                 camera.setPipeline(new PoleDetectionPipeline());
                 camera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
                 camera.startStreaming(1280, 720, OpenCvCameraRotation.SIDEWAYS_RIGHT);
+                FtcDashboard.getInstance().startCameraStream(camera, 10);
             }
 
             @Override
