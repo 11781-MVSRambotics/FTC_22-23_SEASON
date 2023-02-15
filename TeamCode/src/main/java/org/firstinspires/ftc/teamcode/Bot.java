@@ -31,25 +31,8 @@ public class Bot {
 
     static class State
     {
-
-        // Motor
-        public double FrontRightEncoder;
-        public double FrontLeftEncoder;
-        public double BackRightEncoder;
-        public double BackLeftEncoder;
-        public double TurnTableEncoder;
-        public double SlideExtensionEncoder;
-        public double SlideRetractionEncoder;
-
-        // Servo
-        public double ArmEncoder;
-        public double WristEncoder;
-        public double ClawEncoder;
-
-        // Other
         public double IMUAngle;
     }
-
     public State state;
 
     // The two major controllable components of the robot
@@ -82,6 +65,8 @@ public class Bot {
         FrontLeftMotor = hwMap.get(DcMotorEx.class, "FrontLeftMotor");
         BackRightMotor = hwMap.get(DcMotorEx.class, "BackRightMotor");
         BackLeftMotor = hwMap.get(DcMotorEx.class, "BackLeftMotor");
+        chassis = new MecanumDrive(FrontRightMotor, FrontLeftMotor, BackRightMotor, BackLeftMotor);
+
         TurretTurnMotor = hwMap.get(DcMotorEx.class, "TurretSpinMotor");
         TurretExtendMotor = hwMap.get(DcMotorEx.class, "TurretExtendMotor");
 
@@ -92,7 +77,7 @@ public class Bot {
         // Instantiating chassis object
         // All global movement code resides in this object
         // Accepts four motor objects as a reference to each wheel
-        chassis = new MecanumDrive(FrontRightMotor, FrontLeftMotor, BackRightMotor, BackLeftMotor);
+
 
         // Instantiating turret object
         // Responsible for all cone manipulation
@@ -153,20 +138,6 @@ public class Bot {
 
     public void UpdateState()
     {
-        // Motor
-        state.FrontRightEncoder = FrontRightMotor.getCurrentPosition();
-        state.FrontLeftEncoder = FrontLeftMotor.getCurrentPosition();
-        state.BackRightEncoder = BackRightMotor.getCurrentPosition();
-        state.BackLeftEncoder = BackLeftMotor.getCurrentPosition();
-        state.TurnTableEncoder = TurretTurnMotor.getCurrentPosition();
-        state.SlideExtensionEncoder = TurretExtendMotor.getCurrentPosition();
-        state.SlideRetractionEncoder = 0;
-
-        // Servo
-        state.ArmEncoder = 0;
-        state.WristEncoder = 0;
-        state.ClawEncoder = 0;
-
         // Other
         state.IMUAngle = imu.getAngularOrientation().firstAngle;
     }

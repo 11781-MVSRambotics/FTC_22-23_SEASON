@@ -12,9 +12,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 // Also controls arm and claw for cone interaction
 public class Turret {
 
+    public State state;
+
     // Instance objects for hardware motors and servos
     public DcMotorEx TurnMotor, ExtendMotor;
-    public Servo ArmServo, PickerServo;
+    public Servo ArmServo, LeftClawServo, RightClawServo;
 
     // Enumerations to specify the two types of movement used by motion methods
     // ABSOLUTE moves to a given angle/encoder value regardless of current position
@@ -28,6 +30,17 @@ public class Turret {
     {
         ABSOLUTE,
         RELATIVE
+    }
+
+    static class State
+    {
+        // Motor
+        public double TurnTablePosition;
+        public double SlidesPosition;
+
+        // Servo
+        public double ArmPosition;
+        public double ClawPosition;
     }
 
     // Turret constructor that takes references to two motors and two servos
@@ -94,5 +107,13 @@ public class Turret {
 
         // Supply motor with a velocity so it can move
         ExtendMotor.setVelocity(speed);
+    }
+
+    public void UpdateState()
+    {
+        state.TurnTablePosition = TurnMotor.getCurrentPosition();
+        state.SlidesPosition = ExtendMotor.getCurrentPosition();
+        state.ArmPosition = ArmServo.getPosition();
+        state.ClawPosition = (RightClawServo.getPosition() + LeftClawServo.getPosition()) / 2;
     }
 }

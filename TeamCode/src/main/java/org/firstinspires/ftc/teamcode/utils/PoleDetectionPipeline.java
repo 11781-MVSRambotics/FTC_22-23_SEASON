@@ -20,6 +20,8 @@ import java.util.List;
 // This class scares me
 public class PoleDetectionPipeline extends OpenCvPipeline {
 
+    RotatedRect lastRect = new RotatedRect();
+
     // Process frame runs every time the camera captures a frame (I think)
     // Basically all image manipulation will happen in here (I guess)
     // This method also scares me (I suppose)
@@ -41,7 +43,7 @@ public class PoleDetectionPipeline extends OpenCvPipeline {
         Imgproc.cvtColor(input, hsv, Imgproc.COLOR_BGR2HSV);
 
         // Take the hsv image and mask out anything not in the color range
-        colorMask = hsv.clone();
+        colorMask = hsv;
         Core.inRange(hsv, yellowLower, yellowUpper, colorMask);
 
         // Apply mask to the original image (Maybe)
@@ -78,9 +80,6 @@ public class PoleDetectionPipeline extends OpenCvPipeline {
 
         if (maxValIdx != 0)
         {
-            Mat drawing = Mat.zeros(edges.size(), CvType.CV_8UC3);
-            Imgproc.drawContours(drawing, contours, maxValIdx, new Scalar(255, 255, 0), 2);
-
             MatOfPoint2f contour2f = new MatOfPoint2f(contours.get(maxValIdx).toArray());
             RotatedRect rectangle = Imgproc.minAreaRect(contour2f);
             Point[] rectPoints = new Point[4];
@@ -88,17 +87,19 @@ public class PoleDetectionPipeline extends OpenCvPipeline {
             for (int i = 0; i < 4; i++) {
                 Imgproc.line(input, rectPoints[i], rectPoints[(i + 1) % 4], new Scalar(4, 157, 77), 10);
             }
-
-            // This frame will be returned to the camera preview
-            return input;
+            lastRect = rectangle;
         }
         else
         {
-            return hsv;
+            Point[] rectPoints = new Point[4];
+            lastRect.points(rectPoints);
+            for (int i = 0; i < 4; i++) {
+                Imgproc.line(input, rectPoints[i], rectPoints[(i + 1) % 4], new Scalar(4, 157, 77), 10);
+            }
         }
 
-
-
+        // This frame will be returned to the camera preview
+        return input;
     }
 
 }

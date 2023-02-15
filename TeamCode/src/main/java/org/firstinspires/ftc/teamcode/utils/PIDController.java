@@ -19,25 +19,21 @@ public class PIDController
         this.Kd = d;
     }
 
-    public double Calculate (double target, double actual)
+    public double Calculate (double error)
     {
-        double error = target - actual;
-
         ElapsedTime time = new ElapsedTime();
 
         double current_time;
         double previous_time = time.time();
-        double current_error;
         double previous_error = 0;
 
         double max_i = 0;
 
         current_time = time.time();
-        current_error = target - actual;
 
-        p = Kp * current_error;
+        p = Kp * error;
 
-        i += Ki * (current_error * (current_time - previous_time));
+        i += Ki * (error * (current_time - previous_time));
 
         if (i > max_i)
         {
@@ -48,9 +44,9 @@ public class PIDController
             i = -max_i;
         }
 
-        d = Kd * (current_error - previous_error) / (current_time - previous_time);
+        d = Kd * (error - previous_error) / (current_time - previous_time);
 
-        previous_error = current_error;
+        previous_error = error;
         previous_time = current_time;
 
         return p + i + d;
