@@ -17,8 +17,8 @@ import java.util.Vector;
 // An instance of this class is automatically created and initialized as a component of the Bot class
 public class MecanumDrive
 {
-    public State currentState;
-    public State targetState;
+    public State currentState = new State();
+    public State targetState = new State();
     // Instance variables referencing the chassis' motors
     public DcMotorEx FrontRightWheel, FrontLeftWheel, BackRightWheel, BackLeftWheel;
 

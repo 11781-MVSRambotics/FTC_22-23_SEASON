@@ -30,7 +30,7 @@ public class Bot {
     {
         public double IMUAngle;
     }
-    public State state;
+    public State state = new State();
 
     // The two major controllable components of the robot
     // Each of these components will utilize a different Gamepad during TeleOp
@@ -57,7 +57,8 @@ public class Bot {
 
         turret = new Turret(
                 hwMap.get(DcMotorEx.class, "TurretSpinMotor"),
-                hwMap.get(DcMotorEx.class, "TurretExtendMotor"),
+                hwMap.get(DcMotorEx.class, "RightTurretExtendMotor"),
+                hwMap.get(DcMotorEx.class, "LeftTurretExtendMotor"),
                 hwMap.get(Servo.class, "RightArmServo"),
                 hwMap.get(Servo.class, "LeftArmServo"),
                 hwMap.get(Servo.class, "RightClawServo"),
@@ -65,7 +66,7 @@ public class Bot {
                 hwMap.get(DigitalChannel.class, "SlideLimiter")
         );
 
-        imu = hwMap.get(BNO055IMU.class, "imu");
+        imu = hwMap.get(BNO055IMU.class, "EHUB_IMU");
 
         camera = OpenCvCameraFactory.getInstance().createWebcam(hwMap.get(WebcamName.class, "Eye_Of_Sauron"), hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName()));
 
@@ -106,13 +107,15 @@ public class Bot {
 
     public void Move()
     {
+        UpdateState();
         turret.Move();
+        //chassis.Move();
     }
 
     public void UpdateState()
     {
-        chassis.UpdateCurrentState();
         turret.UpdateCurrentState();
+        chassis.UpdateCurrentState();
 
         // Other
         state.IMUAngle = imu.getAngularOrientation().firstAngle;

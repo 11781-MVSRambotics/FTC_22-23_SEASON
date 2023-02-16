@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode;
 
 import android.transition.Slide;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -10,6 +12,7 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.teamcode.utils.PIDController;
 
 // This class contains all the code required for cone manipulation
@@ -17,11 +20,11 @@ import org.firstinspires.ftc.teamcode.utils.PIDController;
 // Also controls arm and claw for cone interaction
 public class Turret {
 
-    public State currentState;
-    public State targetState;
+    public State currentState = new State();
+    public State targetState = new State();
 
     // Instance objects for hardware motors and servos
-    DcMotorEx TurnMotor, ExtendMotor;
+    DcMotorEx TurnMotor, RightExtendMotor, LeftExtendMotor;
     Servo RightArmServo, LeftArmServo, RightClawServo, LeftClawServo;
 
     DigitalChannel SlideLimiter;
@@ -52,24 +55,34 @@ public class Turret {
 
     // Turret constructor that takes references to two motors and two servos
     // Also responsible for configuring basic motor behaviors
-    public Turret(DcMotorEx TurnMotor, DcMotorEx ExtendMotor, Servo LeftArmServo, Servo RightArmServo, Servo RightClawServo, Servo LeftClawServo, DigitalChannel SlideLimiter)
+    public Turret(DcMotorEx TurnMotor, DcMotorEx RightExtendMotor, DcMotorEx LeftExtendMotor, Servo LeftArmServo, Servo RightArmServo, Servo RightClawServo, Servo LeftClawServo, DigitalChannel SlideLimiter)
     {
+        TurnMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        RightExtendMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        LeftExtendMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
         // Reverse the motor direction to make it more intuitive
         TurnMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        RightExtendMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        LeftExtendMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
         // Configure motors to break when not under load
         TurnMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        ExtendMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        RightExtendMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        LeftExtendMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Zero out the motor positions and configure them to the correct mode
         TurnMotor.setTargetPosition(0);
-        ExtendMotor.setTargetPosition(0);
+        RightExtendMotor.setTargetPosition(0);
+        LeftExtendMotor.setTargetPosition(0);
         TurnMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        ExtendMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        RightExtendMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        LeftExtendMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         // Link parameter references to instance variables
         this.TurnMotor = TurnMotor;
-        this.ExtendMotor = ExtendMotor;
+        this.RightExtendMotor = RightExtendMotor;
+        this.LeftExtendMotor = LeftExtendMotor;
         this.RightArmServo = RightArmServo;
         this.LeftArmServo = LeftArmServo;
         this.RightClawServo = RightClawServo;
@@ -79,14 +92,18 @@ public class Turret {
 
     public void Move()
     {
+        TelemetryPacket turretTelemetry = new TelemetryPacket();
+        turretTelemetry.addLine("TurnMotor distance to target: " + (targetState.TurnTablePosition - currentState.TurnTablePosition));
+        turretTelemetry.addLine("ExtensionMotor distance to target: " + (targetState.SlidesPosition - currentState.SlidesPosition));
+        FtcDashboard.getInstance().sendTelemetryPacket(turretTelemetry);
+
         UpdateCurrentState();
         if (!TargetStateReached())
         {
-            PIDController pid = new PIDController(1, 1, 1);
-
-            if (!SlideLimiter.getState())
+            if (SlideLimiter.getState())
             {
-                ExtendMotor.setTargetPosition(targetState.SlidesPosition);
+                RightExtendMotor.setTargetPosition(targetState.SlidesPosition);
+                LeftExtendMotor.setTargetPosition(targetState.SlidesPosition);
             }
 
             TurnMotor.setTargetPosition(targetState.TurnTablePosition);
@@ -97,6 +114,8 @@ public class Turret {
 
         }
 
+        //RightExtendMotor.setPower(0.5);
+        LeftExtendMotor.setPower(0.5);
         TurnMotor.setPower(0.2);
     }
 
@@ -138,6 +157,18 @@ public class Turret {
         }
     }
 
+    public void AddArmInput(double position)
+    {
+        RightArmServo.setPosition(position);
+        LeftArmServo.setPosition(position);
+    }
+
+    public void AddClawInput(double position)
+    {
+        RightClawServo.setPosition(position);
+        LeftClawServo.setPosition(position);
+    }
+
     boolean TargetStateReached()
     {
         return
@@ -153,7 +184,7 @@ public class Turret {
     void UpdateCurrentState()
     {
         currentState.TurnTablePosition = TurnMotor.getCurrentPosition();
-        currentState.SlidesPosition = ExtendMotor.getCurrentPosition();
+        currentState.SlidesPosition = (RightExtendMotor.getCurrentPosition() + LeftExtendMotor.getCurrentPosition()) / 2;
         currentState.ArmPosition = (RightArmServo.getPosition() + LeftArmServo.getPosition()) / 2;
         currentState.ClawPosition = (RightClawServo.getPosition() + LeftClawServo.getPosition()) / 2;
     }
