@@ -73,7 +73,7 @@ public class ManualDebug extends LinearOpMode{
             bot.Move();
             bot.UpdateState();
 
-            FtcDashboard.getInstance().sendTelemetryPacket(bot.turret.telemetry);
+            FtcDashboard.getInstance().sendTelemetryPacket(bot.turret.GetUpdatedTelemetry());
 
             telemetry.update();
         }

@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.utils.PIDController;
 // Also controls arm and claw for cone interaction
 public class Turret {
 
-    public TelemetryPacket telemetry = new TelemetryPacket();
+    TelemetryPacket telemetry = new TelemetryPacket();
 
     public State currentState = new State();
     public State targetState = new State();
@@ -98,8 +98,6 @@ public class Turret {
 
     public void Move()
     {
-
-        UpdateCurrentState();
         if (!TargetStateReached())
         {
             if (SlideLimiter.getState())
@@ -109,21 +107,22 @@ public class Turret {
             }
 
             TurnMotor.setTargetPosition(targetState.TurnTablePosition);
-            RightArmServo.setPosition(targetState.ArmPosition);
-            LeftArmServo.setPosition(targetState.ArmPosition);
-            RightClawServo.setPosition(targetState.ClawPosition);
-            LeftClawServo.setPosition(targetState.ClawPosition);
-
         }
 
-        //RightExtendMotor.setPower(0.5);
-        LeftExtendMotor.setPower(0.5);
-        TurnMotor.setPower(0);
+        RightArmServo.setPosition(targetState.ArmPosition);
+        LeftArmServo.setPosition(targetState.ArmPosition);
+
+        RightClawServo.setPosition(targetState.ClawPosition);
+        LeftClawServo.setPosition(targetState.ClawPosition);
+
+        TurnMotor.setPower(targetState.TurnTablePower);
+        RightExtendMotor.setPower(targetState.SlidesPower);
+        LeftExtendMotor.setPower(targetState.SlidesPower);
     }
 
     // Method for rotating the turntable with two different modes
     // Can turn in reference to current location or to an absolute position
-    public void AddRotationInput(int degrees, RotateMode mode)
+    public void AddRotationInput(int degrees, RotateMode mode, double power)
     {
         //Convert degree value to encoder ticks
         //1120 encoder ticks per revolution of the output shaft
@@ -139,10 +138,12 @@ public class Turret {
         {
             targetState.TurnTablePosition = currentState.TurnTablePosition + encoder_value;
         }
+
+        targetState.TurnTablePower = power;
     }
 
     //Extending the linear slides by a length in centimeters and a speed in encoder ticks per second
-    public void AddExtensionInput(double length, ExtendMode mode)
+    public void AddExtensionInput(double length, ExtendMode mode, double power)
     {
         //Convert centimeters to encoder ticks
         //1120 encoder ticks per revolution of the output shaft
@@ -157,18 +158,18 @@ public class Turret {
         {
             targetState.SlidesPosition = currentState.SlidesPosition + encoder_value;
         }
+
+        targetState.SlidesPower = power;
     }
 
     public void AddArmInput(double position)
     {
-        RightArmServo.setPosition(position);
-        LeftArmServo.setPosition(position);
+        targetState.ArmPosition = position;
     }
 
     public void AddClawInput(double position)
     {
-        RightClawServo.setPosition(position);
-        LeftClawServo.setPosition(position);
+        targetState.ClawPosition = position;
     }
 
     boolean TargetStateReached()
@@ -176,26 +177,37 @@ public class Turret {
         return
                 Math.abs(targetState.TurnTablePosition - currentState.TurnTablePosition) < 10
                 &&
-                Math.abs(targetState.SlidesPosition - currentState.SlidesPosition) < 10
-                &&
-                Math.abs(targetState.ArmPosition - currentState.ArmPosition) < 10
-                &&
-                Math.abs(targetState.ClawPosition - currentState.ClawPosition) < 10;
+                Math.abs(targetState.SlidesPosition - currentState.SlidesPosition) < 10;
     }
 
     void UpdateCurrentState()
     {
         currentState.TurnTablePosition = TurnMotor.getCurrentPosition();
-        telemetry.addLine(String.valueOf(currentState.TurnTablePosition));
 
         currentState.SlidesPosition = (RightExtendMotor.getCurrentPosition() + LeftExtendMotor.getCurrentPosition()) / 2;
-        telemetry.addLine(String.valueOf(currentState.SlidesPosition));
 
         currentState.ArmPosition = (RightArmServo.getPosition() + LeftArmServo.getPosition()) / 2;
-        telemetry.addLine(String.valueOf(currentState.ArmPosition));
 
         currentState.ClawPosition = (RightClawServo.getPosition() + LeftClawServo.getPosition()) / 2;
-        telemetry.addLine(String.valueOf(currentState.ClawPosition));
+    }
 
+    public TelemetryPacket GetUpdatedTelemetry()
+    {
+        telemetry.clearLines();
+        telemetry.addLine(TargetStateReached() ? "Target State has been reached" : "Target State has not been reached");
+        telemetry.addLine("TurnTable:");
+        telemetry.addLine("-  Current -> Position: " + currentState.TurnTablePosition + " Power: " + currentState.TurnTablePower);
+        telemetry.addLine("-  Target -> Position: " + targetState.TurnTablePosition + " Power: " + targetState.TurnTablePower);
+        telemetry.addLine("Slides:");
+        telemetry.addLine("-  Current -> Position: " + currentState.SlidesPosition + " Power: " + currentState.SlidesPower);
+        telemetry.addLine("-  Target -> Position: " + targetState.SlidesPosition + " Power: " + targetState.SlidesPower);
+        telemetry.addLine("Arm:");
+        telemetry.addLine("-  Current -> Position: " + currentState.ArmPosition);
+        telemetry.addLine("-  Target -> Position: " + targetState.ArmPosition);
+        telemetry.addLine("Claw:");
+        telemetry.addLine("-  Current -> Position: " + currentState.ClawPosition);
+        telemetry.addLine("-  Target -> Position: " + targetState.ClawPosition);
+
+        return telemetry;
     }
 }
