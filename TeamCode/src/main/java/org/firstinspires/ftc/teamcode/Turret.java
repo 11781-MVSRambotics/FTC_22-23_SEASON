@@ -20,6 +20,8 @@ import org.firstinspires.ftc.teamcode.utils.PIDController;
 // Also controls arm and claw for cone interaction
 public class Turret {
 
+    public TelemetryPacket telemetry = new TelemetryPacket();
+
     public State currentState = new State();
     public State targetState = new State();
 
@@ -46,8 +48,9 @@ public class Turret {
     {
         // Motor
         public int TurnTablePosition;
+        public double TurnTablePower;
         public int SlidesPosition;
-
+        public double SlidesPower;
         // Servo
         public double ArmPosition;
         public double ClawPosition;
@@ -66,8 +69,11 @@ public class Turret {
         RightExtendMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         LeftExtendMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
+        RightArmServo.setDirection(Servo.Direction.FORWARD);
+        LeftArmServo.setDirection(Servo.Direction.REVERSE);
+
         // Configure motors to break when not under load
-        TurnMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        TurnMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         RightExtendMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         LeftExtendMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -92,10 +98,6 @@ public class Turret {
 
     public void Move()
     {
-        TelemetryPacket turretTelemetry = new TelemetryPacket();
-        turretTelemetry.addLine("TurnMotor distance to target: " + (targetState.TurnTablePosition - currentState.TurnTablePosition));
-        turretTelemetry.addLine("ExtensionMotor distance to target: " + (targetState.SlidesPosition - currentState.SlidesPosition));
-        FtcDashboard.getInstance().sendTelemetryPacket(turretTelemetry);
 
         UpdateCurrentState();
         if (!TargetStateReached())
@@ -116,7 +118,7 @@ public class Turret {
 
         //RightExtendMotor.setPower(0.5);
         LeftExtendMotor.setPower(0.5);
-        TurnMotor.setPower(0.2);
+        TurnMotor.setPower(0);
     }
 
     // Method for rotating the turntable with two different modes
@@ -184,8 +186,16 @@ public class Turret {
     void UpdateCurrentState()
     {
         currentState.TurnTablePosition = TurnMotor.getCurrentPosition();
+        telemetry.addLine(String.valueOf(currentState.TurnTablePosition));
+
         currentState.SlidesPosition = (RightExtendMotor.getCurrentPosition() + LeftExtendMotor.getCurrentPosition()) / 2;
+        telemetry.addLine(String.valueOf(currentState.SlidesPosition));
+
         currentState.ArmPosition = (RightArmServo.getPosition() + LeftArmServo.getPosition()) / 2;
+        telemetry.addLine(String.valueOf(currentState.ArmPosition));
+
         currentState.ClawPosition = (RightClawServo.getPosition() + LeftClawServo.getPosition()) / 2;
+        telemetry.addLine(String.valueOf(currentState.ClawPosition));
+
     }
 }

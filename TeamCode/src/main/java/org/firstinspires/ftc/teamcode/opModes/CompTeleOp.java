@@ -63,6 +63,23 @@ public class CompTeleOp extends LinearOpMode
                 initialAngle = bot.imu.getAngularOrientation().firstAngle;
             }
 
+            if (gamepad2.a)
+            {
+                bot.turret.AddArmInput(1);
+
+            }
+            else if (gamepad2.b)
+            {
+                bot.turret.AddArmInput(0);
+            }
+            else
+            {
+                bot.turret.AddArmInput(0.5);
+            }
+
+
+            bot.Move();
+            bot.UpdateState();
 
             telemetry.addData("Initial Angle: ", initialAngle);
             telemetry.addData("Current bot heading", bot.imu.getAngularOrientation().firstAngle);

@@ -42,6 +42,7 @@ public class Bot {
 
     // Webcam object for accessing camera data
     public OpenCvWebcam camera;
+    public Servo CameraServo;
 
     // Constructor that runs each time an object belonging to this class is created
     // All code necessary for startup (pre-opmode) is placed here
@@ -69,7 +70,7 @@ public class Bot {
         imu = hwMap.get(BNO055IMU.class, "EHUB_IMU");
 
         camera = OpenCvCameraFactory.getInstance().createWebcam(hwMap.get(WebcamName.class, "Eye_Of_Sauron"), hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName()));
-
+        CameraServo = hwMap.get(Servo.class, "CameraServo");
         // A container class for all the initialization data that eventually gets used to configure the imu
         BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
 

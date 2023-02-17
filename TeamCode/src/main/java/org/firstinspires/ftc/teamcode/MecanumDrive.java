@@ -24,10 +24,14 @@ public class MecanumDrive
 
     public static class State
     {
-        public double FrontRightPosition;
-        public double FrontLeftPosition;
-        public double BackRightPosition;
-        public double BackLeftPosition;
+        public int FrontRightPosition;
+        public double FrontRightPower;
+        public int FrontLeftPosition;
+        public double FrontLeftPower;
+        public int BackRightPosition;
+        public double BackRightPower;
+        public int BackLeftPosition;
+        public double BackLeftPower;
     }
 
     // Constructor used to reverse the correct wheels to produce intuitive motion
@@ -92,7 +96,7 @@ public class MecanumDrive
 
     public void CalculateRotatedState(Vector2D input)
     {
-        double encoderValue = ((input.angle * (28.7 * Math.PI)) / (9.6 * Math.PI)) * 537.7;
+        int encoderValue = (int) (((input.angle * (28.7 * Math.PI)) / (9.6 * Math.PI)) * 537.7);
 
         targetState.FrontRightPosition = currentState.FrontRightPosition - encoderValue;
         targetState.FrontLeftPosition = currentState.FrontLeftPosition + encoderValue;
@@ -102,7 +106,7 @@ public class MecanumDrive
 
     public void CalculateTranslatedState(Vector2D input)
     {
-        double encoderValue = (input.magnitude / (9.6 * Math.PI)) * 537.7;
+        int encoderValue = (int) ((input.magnitude / (9.6 * Math.PI)) * 537.7);
 
         targetState.FrontRightPosition = currentState.FrontRightPosition + encoderValue;
         targetState.FrontLeftPosition = currentState.FrontLeftPosition + encoderValue;
