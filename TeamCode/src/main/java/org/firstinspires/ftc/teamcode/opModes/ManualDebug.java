@@ -25,50 +25,28 @@ public class ManualDebug extends LinearOpMode{
 
         while (opModeIsActive())
         {
-            /*
-            if (gamepad1.right_trigger > 0)
-            {
-                bot.turret.AddExtensionInput(30, Turret.ExtendMode.ABSOLUTE);
-            }
-            else if (gamepad1.left_trigger > 0)
-            {
-                bot.turret.AddExtensionInput(0, Turret.ExtendMode.ABSOLUTE);
 
+            if (gamepad2.right_trigger > 0)
+            {
+                bot.turret.AddArmInput(gamepad2.right_trigger);
+            }
+            else if (gamepad2.left_trigger > 0)
+            {
+                bot.turret.AddArmInput(-gamepad2.left_trigger);
             }
             else
-            {
-                bot.turret.AddExtensionInput(0, Turret.ExtendMode.RELATIVE);
-            }
-             */
-
-            if (gamepad1.a)
-            {
-                bot.turret.AddArmInput(1);
-
-            }
-            else if (gamepad1.b)
             {
                 bot.turret.AddArmInput(0);
             }
-            else
-            {
-                bot.turret.AddArmInput(0.5);
-            }
 
-            if (gamepad1.x)
+            if (gamepad2.dpad_right)
             {
                 bot.turret.AddClawInput(1);
-
             }
-            else if (gamepad1.y)
+            else if (gamepad2.dpad_left)
             {
                 bot.turret.AddClawInput(0);
             }
-            else
-            {
-                bot.turret.AddClawInput(0.5);
-            }
-
 
             bot.Move();
             bot.UpdateState();

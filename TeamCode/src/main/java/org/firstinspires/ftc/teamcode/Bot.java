@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import android.transition.Slide;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -10,15 +11,22 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.tfod.CameraInformation;
+import org.firstinspires.ftc.robotcore.external.tfod.FrameConsumer;
+import org.firstinspires.ftc.robotcore.external.tfod.FrameGenerator;
+import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import org.firstinspires.ftc.teamcode.utils.PoleDetectionPipeline;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
 // This is the main class used for creating a reference to the robot globally
@@ -42,6 +50,13 @@ public class Bot {
 
     // Webcam object for accessing camera data
     public OpenCvWebcam camera;
+    public static TFObjectDetector tfod;
+    public static VuforiaLocalizer vuforia;
+    public static final String TFOD_MODEL_ASSET = "BlooBoi_Proto.tflite";
+    public static final String[] LABELS = {"BLooboi"};
+    private static final String VUFORIA_KEY = "AbskhHb/////AAABmb8nKWBiYUJ9oEFmxQL9H2kC6M9FzPa1acXUaS/H5wRkeNbpNVBJjDfcrhlTV2SIGc/lxBOtq9X7doE2acyeVOPg4sP69PQQmDVQH5h62IwL8x7BS/udilLU7MyX3KEoaFN+eR1o4FKBspsYrIXA/Oth+TUyrXuAcc6bKSSblICUpDXCeUbj17KrhghgcgxU6wzl84lCDoz6IJ9egO+CG4HlsBhC/YAo0zzi82/BIUMjBLgFMc63fc6eGTGiqjCfrQPtRWHdj2sXHtsjZr9/BpLDvFwFK36vSYkRoSZCZ38Fr+g3nkdep25+oEsmx30IkTYvQVMFZKpK3WWMYUWjWgEzOSvhh+3BOg+3UoxBJSNk";
+
+
     public Servo CameraServo;
 
     // Constructor that runs each time an object belonging to this class is created
@@ -60,14 +75,31 @@ public class Bot {
                 hwMap.get(DcMotorEx.class, "TurretSpinMotor"),
                 hwMap.get(DcMotorEx.class, "RightTurretExtendMotor"),
                 hwMap.get(DcMotorEx.class, "LeftTurretExtendMotor"),
-                hwMap.get(Servo.class, "RightArmServo"),
-                hwMap.get(Servo.class, "LeftArmServo"),
+                hwMap.get(CRServo.class, "RightArmServo"),
+                hwMap.get(CRServo.class, "LeftArmServo"),
                 hwMap.get(Servo.class, "RightClawServo"),
                 hwMap.get(Servo.class, "LeftClawServo"),
                 hwMap.get(DigitalChannel.class, "SlideLimiter")
         );
 
         imu = hwMap.get(BNO055IMU.class, "EHUB_IMU");
+
+        VuforiaLocalizer.Parameters Vparameters = new VuforiaLocalizer.Parameters();
+
+        Vparameters.vuforiaLicenseKey = VUFORIA_KEY;
+        Vparameters.cameraName = hwMap.get(WebcamName.class, "Eye_Of_Sauron");
+
+        vuforia = ClassFactory.getInstance().createVuforia(Vparameters);
+
+        int tfodMonitorViewId = hwMap.appContext.getResources().getIdentifier(
+                "tfodMonitorViewId", "id", hwMap.appContext.getPackageName());
+        TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
+        tfodParameters.minResultConfidence = 0.8f;
+        tfodParameters.isModelTensorFlow2 = true;
+        tfodParameters.inputSize = 320;
+        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
+        tfod.setZoom(1, 16.0 / 9.0);
+        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABELS);
 
         camera = OpenCvCameraFactory.getInstance().createWebcam(hwMap.get(WebcamName.class, "Eye_Of_Sauron"), hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName()));
         CameraServo = hwMap.get(Servo.class, "CameraServo");
@@ -91,12 +123,10 @@ public class Bot {
             // onOpened runs the immediately after openCameraDeviceAsync is called, which is why it must be inline
             @Override
             public void onOpened() {
-                // The pipeline is the set of operations that occurs before the image is presented to the user
-                // Sets the camera pipeline to a custom one for pole detection
                 camera.setPipeline(new PoleDetectionPipeline());
-
-                //Actually turn the camera on so it will process images
-                //camera.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT);
+                camera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
+                camera.startStreaming(1280, 720, OpenCvCameraRotation.SIDEWAYS_RIGHT);
+                FtcDashboard.getInstance().startCameraStream(camera, 10);
             }
 
             // onError also need to be inlined, but isn't necessarily called when the camera is opened

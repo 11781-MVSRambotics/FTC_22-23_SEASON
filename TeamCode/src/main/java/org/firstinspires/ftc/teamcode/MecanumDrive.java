@@ -3,15 +3,19 @@ package org.firstinspires.ftc.teamcode;
 import android.app.PendingIntent;
 import android.provider.Telephony;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.robot.RobotState;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.utils.PIDController;
 import org.firstinspires.ftc.teamcode.utils.Vector2D;
 
 import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 
 // This class contains all the code required for traversing the field in both Auto and TeleOp
 // An instance of this class is automatically created and initialized as a component of the Bot class
@@ -114,59 +118,44 @@ public class MecanumDrive
         targetState.BackLeftPosition = currentState.BackLeftPosition + encoderValue;
     }
 
-    public void RotateAutoBasic(double angle, double power)
+    public void RotateAutoBad(double time, double power)
     {
-        double encoderValue = ((angle * (28.7 * Math.PI)) / (9.6 * Math.PI)) * 537.7;
+        ElapsedTime elapsedTime = new ElapsedTime();
+        TelemetryPacket packet = new TelemetryPacket();
 
-        FrontRightWheel.setTargetPosition((int) (FrontRightWheel.getCurrentPosition() - encoderValue));
-        FrontLeftWheel.setTargetPosition((int) (FrontLeftWheel.getCurrentPosition() + encoderValue));
-        BackRightWheel.setTargetPosition((int) (BackRightWheel.getCurrentPosition() - encoderValue));
-        BackLeftWheel.setTargetPosition((int) (BackLeftWheel.getCurrentPosition() + encoderValue));
-
-        while ( Math.abs(FrontRightWheel.getTargetPosition() - FrontRightWheel.getCurrentPosition()) < 30
-                &&
-                Math.abs(FrontLeftWheel.getTargetPosition() - FrontLeftWheel.getCurrentPosition()) < 30
-                &&
-                Math.abs(BackRightWheel.getTargetPosition() - BackRightWheel.getCurrentPosition()) < 30
-                &&
-                Math.abs(BackLeftWheel.getTargetPosition() - BackLeftWheel.getCurrentPosition()) < 30
-        )
+        while(elapsedTime.time(TimeUnit.SECONDS) < time)
         {
-            FrontRightWheel.setPower(power);
+            FrontRightWheel.setPower(-power);
             FrontLeftWheel.setPower(power);
-            BackRightWheel.setPower(power);
+            BackRightWheel.setPower(-power);
             BackLeftWheel.setPower(power);
+
+            packet.clearLines();
+            packet.addLine("Time: " + String.valueOf(elapsedTime));
+            FtcDashboard.getInstance().sendTelemetryPacket(packet);
         }
+
     }
 
-    public void DriveAutoBasic (double distance, double power)
+    public void DriveAutoBad(double time, double power)
     {
-        double encoderValue = (distance / (9.6 * Math.PI)) * 537.7;
+        ElapsedTime elapsedTime = new ElapsedTime();
+        TelemetryPacket packet = new TelemetryPacket();
 
-        FrontRightWheel.setTargetPosition((int) (FrontRightWheel.getCurrentPosition() + encoderValue));
-        FrontLeftWheel.setTargetPosition((int) (FrontLeftWheel.getCurrentPosition() + encoderValue));
-        BackRightWheel.setTargetPosition((int) (BackRightWheel.getCurrentPosition() + encoderValue));
-        BackLeftWheel.setTargetPosition((int) (BackLeftWheel.getCurrentPosition() + encoderValue));
-
-        FrontRightWheel.setPower(power);
-        FrontLeftWheel.setPower(power);
-        BackRightWheel.setPower(power);
-        BackLeftWheel.setPower(power);
-
-        while ( Math.abs(FrontRightWheel.getTargetPosition() - FrontRightWheel.getCurrentPosition()) < 30
-                &&
-                Math.abs(FrontLeftWheel.getTargetPosition() - FrontLeftWheel.getCurrentPosition()) < 30
-                &&
-                Math.abs(BackRightWheel.getTargetPosition() - BackRightWheel.getCurrentPosition()) < 30
-                &&
-                Math.abs(BackLeftWheel.getTargetPosition() - BackLeftWheel.getCurrentPosition()) < 30
-        )
+        while(elapsedTime.time(TimeUnit.SECONDS) < time)
         {
             FrontRightWheel.setPower(power);
             FrontLeftWheel.setPower(power);
             BackRightWheel.setPower(power);
             BackLeftWheel.setPower(power);
+
+            packet.clearLines();
+            packet.addLine("Time: " + String.valueOf(elapsedTime));
         }
+
+
+
+
     }
 
     public void MoveAuto(Vector2D input)

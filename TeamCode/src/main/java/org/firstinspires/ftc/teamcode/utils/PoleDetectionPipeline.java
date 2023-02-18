@@ -20,7 +20,7 @@ import java.util.List;
 // This class scares me
 public class PoleDetectionPipeline extends OpenCvPipeline {
 
-    RotatedRect lastRect = new RotatedRect();
+    public RotatedRect lastRect = new RotatedRect();
 
     // Process frame runs every time the camera captures a frame (I think)
     // Basically all image manipulation will happen in here (I guess)

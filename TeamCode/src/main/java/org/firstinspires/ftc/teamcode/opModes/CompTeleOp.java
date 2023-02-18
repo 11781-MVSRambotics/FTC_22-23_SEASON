@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Bot;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
@@ -33,59 +34,66 @@ public class CompTeleOp extends LinearOpMode
 
         while(opModeIsActive())
         {
-            Vector2D input = Vector2D.ConstructFromComponents(gamepad1.left_stick_x, gamepad1.left_stick_y);
 
-            input = Vector2D.rotate(input, -(((bot.imu.getAngularOrientation().firstAngle - initialAngle + 90) / 180) * Math.PI));
+            Vector2D input = Vector2D.ConstructFromComponents(gamepad1.left_stick_x, -gamepad1.left_stick_y);
+
+            // input = Vector2D.rotate(input, -(((bot.imu.getAngularOrientation().firstAngle - initialAngle + 90) / 180) * Math.PI));
 
             // Chassis controller
             chassis.Move(input, gamepad1.right_stick_x, 1);
 
             if (gamepad1.dpad_up)
             {
-                chassis.Move(Vector2D.ConstructFromAngleAndMag((Math.PI/2), 2), 0, 0.2);
-            }
-            else if (gamepad1.dpad_right)
-            {
-                chassis.Move(Vector2D.ConstructFromAngleAndMag((0), 2), 0, 0.2);
-
+                chassis.Move(Vector2D.ConstructFromComponents(0, 1), 0, 0.2);
             }
             else if (gamepad1.dpad_down)
             {
-                chassis.Move(Vector2D.ConstructFromAngleAndMag((3 * Math.PI / 2), 2), 0, 0.2);
+                chassis.Move(Vector2D.ConstructFromComponents(0, -1), 0, 0.2);
+            }
+            else if (gamepad1.dpad_right)
+            {
+                chassis.Move(Vector2D.ConstructFromComponents(1, 0), 0, 0.2);
+            }
+            else if (gamepad1.dpad_left)
+            {
+                chassis.Move(Vector2D.ConstructFromComponents(-1, 0), 0, 0.2);
             }
 
             if (gamepad1.right_trigger > 0)
             {
-                bot.turret.AddRotationInput(180, Turret.RotateMode.ABSOLUTE, gamepad1.right_trigger);
+                bot.turret.AddRotationInput(180, Turret.RotateMode.ABSOLUTE, gamepad1.right_trigger * 0.75);
             }
             else if (gamepad1.left_trigger > 0)
             {
-                bot.turret.AddRotationInput(-180, Turret.RotateMode.ABSOLUTE, gamepad1.left_trigger);
+                bot.turret.AddRotationInput(-180, Turret.RotateMode.ABSOLUTE, gamepad1.left_trigger * 0.75);
             }
             else
             {
                 bot.turret.AddRotationInput(0, Turret.RotateMode.RELATIVE, 0);
             }
 
-            if (gamepad2.right_trigger > 0)
+            if (-gamepad2.right_stick_y > 0)
             {
-                bot.turret.AddExtensionInput(100, Turret.ExtendMode.ABSOLUTE, gamepad2.right_trigger);
+                bot.turret.AddExtensionInput(1000, Turret.ExtendMode.ABSOLUTE, gamepad2.right_stick_y * 0.75);
             }
-            else if (gamepad2.left_trigger > 0)
+            else if (-gamepad2.right_stick_y < 0)
             {
-                bot.turret.AddExtensionInput(0, Turret.ExtendMode.ABSOLUTE, gamepad2.left_trigger);
-
+                bot.turret.AddExtensionInput(0, Turret.ExtendMode.ABSOLUTE, gamepad2.right_stick_y * 0.75);
             }
             else
             {
                 bot.turret.AddExtensionInput(0, Turret.ExtendMode.RELATIVE, 0);
             }
 
-            if (gamepad2.dpad_up)
+            if (gamepad2.right_trigger > 0)
             {
-                bot.turret.AddArmInput(1);
+                bot.turret.AddArmInput(gamepad2.right_trigger);
             }
-            else if (gamepad2.dpad_down)
+            else if (gamepad2.left_trigger > 0)
+            {
+                bot.turret.AddArmInput(-gamepad2.left_trigger);
+            }
+            else
             {
                 bot.turret.AddArmInput(0);
             }
@@ -99,9 +107,13 @@ public class CompTeleOp extends LinearOpMode
                 bot.turret.AddClawInput(0);
             }
 
+            if (gamepad1.right_stick_button && gamepad1.left_stick_button)
+            {
+                initialAngle = bot.imu.getAngularOrientation().firstAngle;
+            }
 
-            bot.UpdateState();
             bot.Move();
+            bot.UpdateState();
             FtcDashboard.getInstance().sendTelemetryPacket(bot.turret.GetUpdatedTelemetry());
 
             telemetry.addData("Initial Angle: ", initialAngle);

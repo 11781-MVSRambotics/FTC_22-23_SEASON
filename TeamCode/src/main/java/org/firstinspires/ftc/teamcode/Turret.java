@@ -27,7 +27,8 @@ public class Turret {
 
     // Instance objects for hardware motors and servos
     DcMotorEx TurnMotor, RightExtendMotor, LeftExtendMotor;
-    Servo RightArmServo, LeftArmServo, RightClawServo, LeftClawServo;
+    CRServo RightArmServo, LeftArmServo;
+    Servo RightClawServo, LeftClawServo;
 
     DigitalChannel SlideLimiter;
     // Enumerations to specify the two types of movement used by motion methods
@@ -52,13 +53,13 @@ public class Turret {
         public int SlidesPosition;
         public double SlidesPower;
         // Servo
-        public double ArmPosition;
+        public double ArmPower;
         public double ClawPosition;
     }
 
     // Turret constructor that takes references to two motors and two servos
     // Also responsible for configuring basic motor behaviors
-    public Turret(DcMotorEx TurnMotor, DcMotorEx RightExtendMotor, DcMotorEx LeftExtendMotor, Servo LeftArmServo, Servo RightArmServo, Servo RightClawServo, Servo LeftClawServo, DigitalChannel SlideLimiter)
+    public Turret(DcMotorEx TurnMotor, DcMotorEx RightExtendMotor, DcMotorEx LeftExtendMotor, CRServo LeftArmServo, CRServo RightArmServo, Servo RightClawServo, Servo LeftClawServo, DigitalChannel SlideLimiter)
     {
         TurnMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RightExtendMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -69,13 +70,16 @@ public class Turret {
         RightExtendMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         LeftExtendMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        RightArmServo.setDirection(Servo.Direction.FORWARD);
-        LeftArmServo.setDirection(Servo.Direction.REVERSE);
-
         // Configure motors to break when not under load
-        TurnMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        TurnMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         RightExtendMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         LeftExtendMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        RightArmServo.setDirection(DcMotorSimple.Direction.FORWARD);
+        LeftArmServo.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        RightClawServo.setDirection(Servo.Direction.FORWARD);
+        LeftClawServo.setDirection(Servo.Direction.REVERSE);
 
         // Zero out the motor positions and configure them to the correct mode
         TurnMotor.setTargetPosition(0);
@@ -109,8 +113,8 @@ public class Turret {
             TurnMotor.setTargetPosition(targetState.TurnTablePosition);
         }
 
-        RightArmServo.setPosition(targetState.ArmPosition);
-        LeftArmServo.setPosition(targetState.ArmPosition);
+        RightArmServo.setPower(targetState.ArmPower);
+        LeftArmServo.setPower(targetState.ArmPower);
 
         RightClawServo.setPosition(targetState.ClawPosition);
         LeftClawServo.setPosition(targetState.ClawPosition);
@@ -162,9 +166,9 @@ public class Turret {
         targetState.SlidesPower = power;
     }
 
-    public void AddArmInput(double position)
+    public void AddArmInput(double power)
     {
-        targetState.ArmPosition = position;
+        targetState.ArmPower = power;
     }
 
     public void AddClawInput(double position)
@@ -186,7 +190,7 @@ public class Turret {
 
         currentState.SlidesPosition = (RightExtendMotor.getCurrentPosition() + LeftExtendMotor.getCurrentPosition()) / 2;
 
-        currentState.ArmPosition = (RightArmServo.getPosition() + LeftArmServo.getPosition()) / 2;
+        currentState.ArmPower = (RightArmServo.getPower() + LeftArmServo.getPower()) / 2;
 
         currentState.ClawPosition = (RightClawServo.getPosition() + LeftClawServo.getPosition()) / 2;
     }
@@ -201,9 +205,10 @@ public class Turret {
         telemetry.addLine("Slides:");
         telemetry.addLine("-  Current -> Position: " + currentState.SlidesPosition + " Power: " + currentState.SlidesPower);
         telemetry.addLine("-  Target -> Position: " + targetState.SlidesPosition + " Power: " + targetState.SlidesPower);
+        telemetry.addLine("-  Limit Switch -> Value: " + SlideLimiter.getState());
         telemetry.addLine("Arm:");
-        telemetry.addLine("-  Current -> Position: " + currentState.ArmPosition);
-        telemetry.addLine("-  Target -> Position: " + targetState.ArmPosition);
+        telemetry.addLine("-  Current -> Power: " + currentState.ArmPower);
+        telemetry.addLine("-  Target -> Power: " + targetState.ArmPower);
         telemetry.addLine("Claw:");
         telemetry.addLine("-  Current -> Position: " + currentState.ClawPosition);
         telemetry.addLine("-  Target -> Position: " + targetState.ClawPosition);
