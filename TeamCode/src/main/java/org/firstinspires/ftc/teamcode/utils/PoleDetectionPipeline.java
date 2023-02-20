@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.utils;
 
+import org.checkerframework.checker.units.qual.C;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -10,6 +11,7 @@ import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.objdetect.CascadeClassifier;
 import org.openftc.easyopencv.OpenCvPipeline;
 
 import java.util.ArrayList;

@@ -23,6 +23,7 @@ public class CompTeleOp extends LinearOpMode
         MecanumDrive chassis = bot.chassis;
         Turret turret = bot.turret;
 
+        /*
         double initialAngle = 0;
         while (!bot.imu.isGyroCalibrated())
         {
@@ -30,6 +31,8 @@ public class CompTeleOp extends LinearOpMode
             telemetry.addData("Gyro is calibrating: ", bot.imu.isGyroCalibrated());
         }
 
+
+         */
         waitForStart();
 
         while(opModeIsActive())
@@ -40,7 +43,7 @@ public class CompTeleOp extends LinearOpMode
             // input = Vector2D.rotate(input, -(((bot.imu.getAngularOrientation().firstAngle - initialAngle + 90) / 180) * Math.PI));
 
             // Chassis controller
-            chassis.Move(input, gamepad1.right_stick_x, 1);
+            chassis.Move(input, gamepad1.right_stick_x * 0.5, 1);
 
             if (gamepad1.dpad_up)
             {
@@ -61,11 +64,11 @@ public class CompTeleOp extends LinearOpMode
 
             if (gamepad1.right_trigger > 0)
             {
-                bot.turret.AddRotationInput(180, Turret.RotateMode.ABSOLUTE, gamepad1.right_trigger * 0.75);
+                bot.turret.AddRotationInput(180, Turret.RotateMode.ABSOLUTE, gamepad1.right_trigger * 0.5);
             }
             else if (gamepad1.left_trigger > 0)
             {
-                bot.turret.AddRotationInput(-180, Turret.RotateMode.ABSOLUTE, gamepad1.left_trigger * 0.75);
+                bot.turret.AddRotationInput(-180, Turret.RotateMode.ABSOLUTE, gamepad1.left_trigger * 0.5);
             }
             else
             {
@@ -107,18 +110,19 @@ public class CompTeleOp extends LinearOpMode
                 bot.turret.AddClawInput(0);
             }
 
+            /*
             if (gamepad1.right_stick_button && gamepad1.left_stick_button)
             {
                 initialAngle = bot.imu.getAngularOrientation().firstAngle;
             }
-
+            */
             bot.Move();
             bot.UpdateState();
             FtcDashboard.getInstance().sendTelemetryPacket(bot.turret.GetUpdatedTelemetry());
 
-            telemetry.addData("Initial Angle: ", initialAngle);
+            // telemetry.addData("Initial Angle: ", initialAngle);
             telemetry.addData("Current bot heading", bot.imu.getAngularOrientation().firstAngle);
-            telemetry.addData("Real angle", bot.imu.getAngularOrientation().firstAngle - initialAngle);
+            // telemetry.addData("Real angle", bot.imu.getAngularOrientation().firstAngle - initialAngle);
             telemetry.update();
         }
 
