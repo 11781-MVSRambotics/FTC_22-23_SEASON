@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opModes;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -8,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Bot;
+import org.firstinspires.ftc.teamcode.Turret;
 
 @SuppressWarnings("unused")
 @TeleOp(name = "Debug OpMode")
@@ -17,32 +19,39 @@ public class ManualDebug extends LinearOpMode{
     public void runOpMode()
     {
 
-        CRServo LeftArmServo = hardwareMap.get(CRServo.class, "LeftArmServo");
-        CRServo RightArmServo = hardwareMap.get(CRServo.class, "RightArmServo");
-
+        Bot bot = new Bot(hardwareMap);
 
         waitForStart();
 
         while (opModeIsActive())
         {
-            if (gamepad1.dpad_up)
+
+            if (gamepad2.right_trigger > 0)
             {
-                RightArmServo.setPower(-1);
-                LeftArmServo.setPower(1);
+                bot.turret.AddArmInput(gamepad2.right_trigger);
             }
-            else if (gamepad1.dpad_down)
+            else if (gamepad2.left_trigger > 0)
             {
-                RightArmServo.setPower(1);
-                LeftArmServo.setPower(-1);
+                bot.turret.AddArmInput(-gamepad2.left_trigger);
             }
             else
             {
-                RightArmServo.setPower(0);
-                LeftArmServo.setPower(0);
+                bot.turret.AddArmInput(0);
             }
 
-            telemetry.addData("LeftArm Power: ", LeftArmServo.getPower());
-            telemetry.addData("RightArm Power: ", RightArmServo.getPower());
+            if (gamepad2.dpad_right)
+            {
+                bot.turret.AddClawInput(1);
+            }
+            else if (gamepad2.dpad_left)
+            {
+                bot.turret.AddClawInput(0);
+            }
+
+            bot.Move();
+            bot.UpdateState();
+
+            FtcDashboard.getInstance().sendTelemetryPacket(bot.turret.GetUpdatedTelemetry());
 
             telemetry.update();
         }

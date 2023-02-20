@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.opModes;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -11,21 +13,20 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 @Autonomous(name = "CompAutonomous")
 public class CompAuto extends LinearOpMode {
 
-    Bot bot = new Bot(hardwareMap);
-
-    MecanumDrive chassis = bot.chassis;
-
     @Override
     public void runOpMode()
     {
-        chassis.FrontRightWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        chassis.FrontLeftWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        chassis.BackRightWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        chassis.BackLeftWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        Bot bot = new Bot(hardwareMap);
+
+        bot.chassis.FrontRightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        bot.chassis.FrontLeftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        bot.chassis.BackRightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        bot.chassis.BackLeftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         waitForStart();
 
-        chassis.RotateAutoBasic(100, 0.5);
-        chassis.DriveAutoBasic(100, 0.5);
+        bot.chassis.DriveAutoBad(7, 0.3);
+
+
     }
 }

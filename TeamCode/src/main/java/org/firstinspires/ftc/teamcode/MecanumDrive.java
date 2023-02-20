@@ -1,23 +1,42 @@
 package org.firstinspires.ftc.teamcode;
 
 import android.app.PendingIntent;
+import android.provider.Telephony;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.robot.RobotState;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.utils.PIDController;
 import org.firstinspires.ftc.teamcode.utils.Vector2D;
 
 import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 
 // This class contains all the code required for traversing the field in both Auto and TeleOp
 // An instance of this class is automatically created and initialized as a component of the Bot class
 public class MecanumDrive
 {
+    public State currentState = new State();
+    public State targetState = new State();
     // Instance variables referencing the chassis' motors
     public DcMotorEx FrontRightWheel, FrontLeftWheel, BackRightWheel, BackLeftWheel;
+
+    public static class State
+    {
+        public int FrontRightPosition;
+        public double FrontRightPower;
+        public int FrontLeftPosition;
+        public double FrontLeftPower;
+        public int BackRightPosition;
+        public double BackRightPower;
+        public int BackLeftPosition;
+        public double BackLeftPower;
+    }
 
     // Constructor used to reverse the correct wheels to produce intuitive motion
     public MecanumDrive(DcMotorEx FrontRightMotor, DcMotorEx FrontLeftMotor, DcMotorEx BackRightMotor, DcMotorEx BackLeftMotor)
@@ -37,135 +56,6 @@ public class MecanumDrive
         this.FrontLeftWheel = FrontLeftMotor;
         this.BackRightWheel = BackRightMotor;
         this.BackLeftWheel = BackLeftMotor;
-    }
-
-    public Bot.State CalculateRotatedState(Vector2D input, Bot.State reference)
-    {
-        double encoderValue = ((input.angle * (28.7 * Math.PI)) / (9.6 * Math.PI)) * 537.7;
-
-        reference.FrontRightEncoder -= encoderValue;
-        reference.FrontLeftEncoder += encoderValue;
-        reference.BackRightEncoder -= encoderValue;
-        reference.BackLeftEncoder += encoderValue;
-
-        return reference;
-    }
-
-    public Bot.State CalculateTranslatedState(Vector2D input, Bot.State reference)
-    {
-        double encoderValue = (input.magnitude / (9.6 * Math.PI)) * 537.7;
-
-        reference.FrontRightEncoder += encoderValue;
-        reference.FrontLeftEncoder += encoderValue;
-        reference.BackRightEncoder += encoderValue;
-        reference.BackLeftEncoder += encoderValue;
-
-        return reference;
-    }
-
-    public void RotateAutoBasic(double angle, double power)
-    {
-        double encoderValue = ((angle * (28.7 * Math.PI)) / (9.6 * Math.PI)) * 537.7;
-
-        FrontRightWheel.setTargetPosition((int) (FrontRightWheel.getCurrentPosition() - encoderValue));
-        FrontLeftWheel.setTargetPosition((int) (FrontLeftWheel.getCurrentPosition() + encoderValue));
-        BackRightWheel.setTargetPosition((int) (BackRightWheel.getCurrentPosition() - encoderValue));
-        BackLeftWheel.setTargetPosition((int) (BackLeftWheel.getCurrentPosition() + encoderValue));
-
-        while ( Math.abs(FrontRightWheel.getTargetPosition() - FrontRightWheel.getCurrentPosition()) < 30
-                &&
-                Math.abs(FrontLeftWheel.getTargetPosition() - FrontLeftWheel.getCurrentPosition()) < 30
-                &&
-                Math.abs(BackRightWheel.getTargetPosition() - BackRightWheel.getCurrentPosition()) < 30
-                &&
-                Math.abs(BackLeftWheel.getTargetPosition() - BackLeftWheel.getCurrentPosition()) < 30
-        )
-        {
-            FrontRightWheel.setPower(power);
-            FrontLeftWheel.setPower(power);
-            BackRightWheel.setPower(power);
-            BackLeftWheel.setPower(power);
-        }
-    }
-
-    public void DriveAutoBasic (double distance, double power)
-    {
-        double encoderValue = (distance / (9.6 * Math.PI)) * 537.7;
-
-        FrontRightWheel.setTargetPosition((int) (FrontRightWheel.getCurrentPosition() + encoderValue));
-        FrontLeftWheel.setTargetPosition((int) (FrontLeftWheel.getCurrentPosition() + encoderValue));
-        BackRightWheel.setTargetPosition((int) (BackRightWheel.getCurrentPosition() + encoderValue));
-        BackLeftWheel.setTargetPosition((int) (BackLeftWheel.getCurrentPosition() + encoderValue));
-
-        FrontRightWheel.setPower(power);
-        FrontLeftWheel.setPower(power);
-        BackRightWheel.setPower(power);
-        BackLeftWheel.setPower(power);
-
-        while ( Math.abs(FrontRightWheel.getTargetPosition() - FrontRightWheel.getCurrentPosition()) < 30
-                &&
-                Math.abs(FrontLeftWheel.getTargetPosition() - FrontLeftWheel.getCurrentPosition()) < 30
-                &&
-                Math.abs(BackRightWheel.getTargetPosition() - BackRightWheel.getCurrentPosition()) < 30
-                &&
-                Math.abs(BackLeftWheel.getTargetPosition() - BackLeftWheel.getCurrentPosition()) < 30
-        )
-        {
-            FrontRightWheel.setPower(power);
-            FrontLeftWheel.setPower(power);
-            BackRightWheel.setPower(power);
-            BackLeftWheel.setPower(power);
-        }
-    }
-
-    public void MoveAuto(Vector2D input, Bot bot)
-    {
-        PIDController PID = new PIDController(1, 1, 1);
-
-        Bot.State targetState = bot.state;
-
-        FrontRightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        FrontLeftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        BackRightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        BackLeftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        if (input.angle != 0)
-        {
-            targetState = CalculateRotatedState(input, bot.state);
-        }
-        else if (input.magnitude != 0)
-        {
-            targetState = CalculateTranslatedState(input, bot.state);
-        }
-        else return;
-
-        while (!TargetStateReached(targetState, bot.state, 10))
-        {
-            double max;
-            double frontLeftPower  = PID.Calculate(targetState.FrontRightEncoder, bot.state.FrontRightEncoder);
-            double frontRightPower = PID.Calculate(targetState.FrontRightEncoder, bot.state.FrontRightEncoder);
-            double backLeftPower   = PID.Calculate(targetState.FrontRightEncoder, bot.state.FrontRightEncoder);
-            double backRightPower  = PID.Calculate(targetState.FrontRightEncoder, bot.state.FrontRightEncoder);
-
-            // Check which motor has received the maximum power value
-            max = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
-            max = Math.max(max, Math.abs(backLeftPower));
-            max = Math.max(max, Math.abs(backRightPower));
-
-            // Normalize all motor powers as a percentage of the maximum
-            if (max > 1.0) {
-                frontLeftPower  /= max;
-                frontRightPower /= max;
-                backLeftPower   /= max;
-                backRightPower  /= max;
-            }
-
-            FrontRightWheel.setPower(frontRightPower);
-            FrontLeftWheel.setPower(frontLeftPower);
-            BackRightWheel.setPower(backRightPower);
-            BackLeftWheel.setPower(backLeftPower);
-            bot.UpdateState();
-        }
     }
 
     // Main function for powering the motors
@@ -208,15 +98,132 @@ public class MecanumDrive
         BackLeftWheel.setPower(backLeftPower);
     }
 
-    public boolean TargetStateReached(Bot.State target, Bot.State current, double buffer)
+    public void CalculateRotatedState(Vector2D input)
+    {
+        int encoderValue = (int) (((input.angle * (28.7 * Math.PI)) / (9.6 * Math.PI)) * 537.7);
+
+        targetState.FrontRightPosition = currentState.FrontRightPosition - encoderValue;
+        targetState.FrontLeftPosition = currentState.FrontLeftPosition + encoderValue;
+        targetState.BackRightPosition = currentState.BackRightPosition - encoderValue;
+        targetState.BackLeftPosition = currentState.BackLeftPosition + encoderValue;
+    }
+
+    public void CalculateTranslatedState(Vector2D input)
+    {
+        int encoderValue = (int) ((input.magnitude / (9.6 * Math.PI)) * 537.7);
+
+        targetState.FrontRightPosition = currentState.FrontRightPosition + encoderValue;
+        targetState.FrontLeftPosition = currentState.FrontLeftPosition + encoderValue;
+        targetState.BackRightPosition = currentState.BackRightPosition + encoderValue;
+        targetState.BackLeftPosition = currentState.BackLeftPosition + encoderValue;
+    }
+
+    public void RotateAutoBad(double time, double power)
+    {
+        ElapsedTime elapsedTime = new ElapsedTime();
+        TelemetryPacket packet = new TelemetryPacket();
+
+        while(elapsedTime.time(TimeUnit.SECONDS) < time)
+        {
+            FrontRightWheel.setPower(-power);
+            FrontLeftWheel.setPower(power);
+            BackRightWheel.setPower(-power);
+            BackLeftWheel.setPower(power);
+
+            packet.clearLines();
+            packet.addLine("Time: " + String.valueOf(elapsedTime));
+            FtcDashboard.getInstance().sendTelemetryPacket(packet);
+        }
+
+    }
+
+    public void DriveAutoBad(double time, double power)
+    {
+        ElapsedTime elapsedTime = new ElapsedTime();
+        TelemetryPacket packet = new TelemetryPacket();
+
+        while(elapsedTime.time(TimeUnit.SECONDS) < time)
+        {
+            FrontRightWheel.setPower(power);
+            FrontLeftWheel.setPower(power);
+            BackRightWheel.setPower(power);
+            BackLeftWheel.setPower(power);
+
+            packet.clearLines();
+            packet.addLine("Time: " + String.valueOf(elapsedTime));
+        }
+
+
+
+
+    }
+
+    public void MoveAuto(Vector2D input)
+    {
+        PIDController PID = new PIDController(1, 1, 1);
+
+        FrontRightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        FrontLeftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        BackRightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        BackLeftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        if (input.angle != 0)
+        {
+            CalculateRotatedState(input);
+        }
+        else if (input.magnitude != 0)
+        {
+            CalculateTranslatedState(input);
+        }
+        else return;
+
+        while (!TargetStateReached())
+        {
+            double max;
+            double frontRightPower  = PID.Calculate(targetState.FrontRightPosition - currentState.FrontRightPosition);
+            double frontLeftPower = PID.Calculate(targetState.FrontLeftPosition - currentState.FrontLeftPosition);
+            double backRightPower   = PID.Calculate(targetState.BackRightPosition - currentState.BackRightPosition);
+            double backLeftPower  = PID.Calculate(targetState.BackLeftPosition - currentState.BackLeftPosition);
+
+            // Check which motor has received the maximum power value
+            max = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
+            max = Math.max(max, Math.abs(backLeftPower));
+            max = Math.max(max, Math.abs(backRightPower));
+
+            // Normalize all motor powers as a percentage of the maximum
+            if (max > 1.0) {
+                frontLeftPower  /= max;
+                frontRightPower /= max;
+                backLeftPower   /= max;
+                backRightPower  /= max;
+            }
+
+            FrontRightWheel.setPower(frontRightPower);
+            FrontLeftWheel.setPower(frontLeftPower);
+            BackRightWheel.setPower(backRightPower);
+            BackLeftWheel.setPower(backLeftPower);
+        }
+    }
+
+    public boolean TargetStateReached()
     {
         return
-                Math.abs(target.FrontRightEncoder - current.FrontRightEncoder) < buffer
+                targetState.FrontRightPosition - currentState.FrontRightPosition < 10
                 &&
-                Math.abs(target.FrontLeftEncoder - current.FrontLeftEncoder) < buffer
+                targetState.FrontLeftPosition - currentState.FrontLeftPosition < 10
                 &&
-                Math.abs(target.BackRightEncoder - current.BackRightEncoder) < buffer
+                targetState.BackRightPosition - currentState.BackRightPosition < 10
                 &&
-                Math.abs(target.BackLeftEncoder - current.BackLeftEncoder) < buffer;
+                targetState.BackLeftPosition - currentState.BackLeftPosition < 10;
+
+
+    }
+
+    public void UpdateCurrentState()
+    {
+        currentState.FrontRightPosition = FrontRightWheel.getCurrentPosition();
+        currentState.FrontLeftPosition = FrontLeftWheel.getCurrentPosition();
+        currentState.BackRightPosition = BackRightWheel.getCurrentPosition();
+        currentState.BackLeftPosition = BackLeftWheel.getCurrentPosition();
     }
 }

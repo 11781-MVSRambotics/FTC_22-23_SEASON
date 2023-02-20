@@ -1,14 +1,17 @@
 package org.firstinspires.ftc.teamcode.utils;
 
+import org.checkerframework.checker.units.qual.C;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
+import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.objdetect.CascadeClassifier;
 import org.openftc.easyopencv.OpenCvPipeline;
 
 import java.util.ArrayList;
@@ -18,6 +21,8 @@ import java.util.List;
 // It is required by the camera to search and identify poles in frame
 // This class scares me
 public class PoleDetectionPipeline extends OpenCvPipeline {
+
+    public RotatedRect lastRect = new RotatedRect();
 
     // Process frame runs every time the camera captures a frame (I think)
     // Basically all image manipulation will happen in here (I guess)
@@ -45,6 +50,8 @@ public class PoleDetectionPipeline extends OpenCvPipeline {
 
         // Apply mask to the original image (Maybe)
         yellowFiltered = new Mat();
+
+
         Core.bitwise_and(hsv, colorMask, yellowFiltered);
 
         Mat edges = new Mat();
@@ -60,25 +67,41 @@ public class PoleDetectionPipeline extends OpenCvPipeline {
 
         Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
+
         double maxVal = 0;
         int maxValIdx = 0;
         for (int contourIdx = 0; contourIdx < contours.size(); contourIdx++)
         {
             double contourArea = Imgproc.contourArea(contours.get(contourIdx));
-            if (maxVal < contourArea)
+            if (maxVal < contourArea && contourIdx != 0)
             {
                 maxVal = contourArea;
                 maxValIdx = contourIdx;
             }
         }
 
-        Mat drawing = Mat.zeros(edges.size(), CvType.CV_8UC3);
-        Imgproc.drawContours(drawing, contours, maxValIdx, new Scalar(255,255,0), 2);
-
-        MatOfPoint2f contour2f = new MatOfPoint2f( contours.get(maxValIdx).toArray() );
-        Imgproc.minAreaRect(contour2f);
+        if (maxValIdx != 0)
+        {
+            MatOfPoint2f contour2f = new MatOfPoint2f(contours.get(maxValIdx).toArray());
+            RotatedRect rectangle = Imgproc.minAreaRect(contour2f);
+            Point[] rectPoints = new Point[4];
+            rectangle.points(rectPoints);
+            for (int i = 0; i < 4; i++) {
+                Imgproc.line(input, rectPoints[i], rectPoints[(i + 1) % 4], new Scalar(4, 157, 77), 10);
+            }
+            lastRect = rectangle;
+        }
+        else
+        {
+            Point[] rectPoints = new Point[4];
+            lastRect.points(rectPoints);
+            for (int i = 0; i < 4; i++) {
+                Imgproc.line(input, rectPoints[i], rectPoints[(i + 1) % 4], new Scalar(4, 157, 77), 10);
+            }
+        }
 
         // This frame will be returned to the camera preview
-        return contour2f;
+        return input;
     }
+
 }
