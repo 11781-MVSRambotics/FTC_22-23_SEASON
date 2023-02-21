@@ -32,38 +32,12 @@ public class TestOpMode extends LinearOpMode
     {
         Bot bot = new Bot(hardwareMap);
 
+        bot.cameras.StartStreaming(PoleDetectionPipeline.ViewportStage.POLES);
+
         waitForStart();
 
         while(opModeIsActive())
         {
-            if (Bot.tfod != null)
-            {
-                // getUpdatedRecognitions() will return null if no new information is available since
-                // the last time that call was made.
-                List<Recognition> updatedRecognitions = Bot.tfod.getUpdatedRecognitions();
-                if (updatedRecognitions != null)
-                {
-                    // step through the list of recognitions and display boundary info.
-                    for (Recognition recognition : updatedRecognitions)
-                    {
-                        // retrieves the deviation from the target
-                        switch (recognition.getLabel())
-                        {
-                            case "Bloo":
-                                telemetry.addData("It's bloo ", 0);
-                                break;
-                            case "Geen":
-                                telemetry.addData("It's geen ", 0);
-                                break;
-                            case "Red":
-                                telemetry.addData("It's red ", 0);
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                }
-            }
             telemetry.update();
         }
 

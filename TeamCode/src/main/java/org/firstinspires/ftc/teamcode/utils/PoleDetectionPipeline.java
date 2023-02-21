@@ -1,107 +1,150 @@
 package org.firstinspires.ftc.teamcode.utils;
 
-import org.checkerframework.checker.units.qual.C;
+import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
+import static org.opencv.imgproc.Imgproc.THRESH_BINARY_INV;
+
 import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
-import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
-import org.opencv.objdetect.CascadeClassifier;
 import org.openftc.easyopencv.OpenCvPipeline;
 
 import java.util.ArrayList;
-import java.util.List;
 
-// This class serves as the order of operations for image processing
-// It is required by the camera to search and identify poles in frame
-// This class scares me
 public class PoleDetectionPipeline extends OpenCvPipeline {
 
-    public RotatedRect lastRect = new RotatedRect();
+    public enum ViewportStage
+    {
+        COLORSPACE,
+        RED_CHANNEL,
+        RED_CHANNEL_THRESH,
+        BLUE_CHANNEL,
+        BLUE_CHANNEL_THRESH,
+        CONTOURS,
+        POLES
+    }
 
-    // Process frame runs every time the camera captures a frame (I think)
-    // Basically all image manipulation will happen in here (I guess)
-    // This method also scares me (I suppose)
+    public Mat lastCapturedFrame;
+
+    ViewportStage viewportStage;
+
+    ArrayList<MatOfPoint> contours = new ArrayList<>();
+    ArrayList<Pole> poles = new ArrayList<>();
+
+    Mat yCrCbMat = new Mat();
+    Mat CrMat, CrThreshMat, CrThreshMat_Inv, CrThreshMat_Combined = new Mat();
+    Mat CbMat, CbThreshMat, CbThreshMat_Inv, CbThreshMat_Combined = new Mat();
+    Mat CrCb_Combined = new Mat();
+
+    Mat drawingMat_Contours = new Mat();
+    Mat drawingMat_Rectangles = new Mat();
+
+    public void setViewportStage(ViewportStage viewportStage)
+    {
+        this.viewportStage = viewportStage;
+    }
+
+    public ArrayList<Pole> getPoles()
+    {
+        return poles;
+    }
+
+    public ArrayList<Pole> getPoles(Pole.Type type)
+    {
+        ArrayList<Pole> out = new ArrayList<>();
+
+        for (Pole pole : poles)
+        {
+            if (pole.getType() == type)
+            {
+                out.add(pole);
+            }
+        }
+
+        return out;
+    }
+
+    public static void drawPole(Mat image, Pole pole, Scalar color, int thickness)
+    {
+        Point[] vertices = new Point[4];
+        pole.points(vertices);
+
+        Imgproc.putText(image, "H/W Ratio: " + pole.getType().toString(), vertices[0], 1, 20, new Scalar(255, 255, 255));
+
+        for (int i = 0; i < 4; i++)
+        {
+            Imgproc.line(image, vertices[i], vertices[(i + 1) % 4], color, thickness);
+        }
+    }
+
     @Override
-    public Mat processFrame(Mat input) {
+    public Mat processFrame(Mat inputMat) {
+
+        lastCapturedFrame = inputMat;
 
         // Define the range for color detection
-        Scalar yellowLower = new Scalar(95, 165, 15);
-        Scalar yellowUpper = new Scalar(105, 250, 255);
+        contours.clear();
+        poles.clear();
 
-        // Allocate memory for different variants of the images
-        Mat hsv;
-        Mat colorMask;
-        Mat yellowFiltered;
+        Imgproc.cvtColor(inputMat, yCrCbMat, Imgproc.COLOR_RGB2YCrCb);
 
-        // Convert the original image into the hsv color scale
-        // Theoretically makes it easier to find the same color in different lighting conditions
-        hsv = input.clone();
-        Imgproc.cvtColor(input, hsv, Imgproc.COLOR_BGR2HSV);
+        Core.extractChannel(yCrCbMat, CrMat, 1);
 
-        // Take the hsv image and mask out anything not in the color range
-        colorMask = hsv;
-        Core.inRange(hsv, yellowLower, yellowUpper, colorMask);
+        Imgproc.threshold(CrMat, CrThreshMat, 145, 255, THRESH_BINARY);
+        Imgproc.threshold(CrMat, CrThreshMat_Inv, 167,255, THRESH_BINARY_INV);
 
-        // Apply mask to the original image (Maybe)
-        yellowFiltered = new Mat();
+        Core.addWeighted(CrThreshMat, 0.5, CrThreshMat_Inv, 0.5, 0, CrThreshMat_Combined);
 
+        Core.extractChannel(yCrCbMat, CbMat, 2);
 
-        Core.bitwise_and(hsv, colorMask, yellowFiltered);
+        Imgproc.threshold(CbMat, CbThreshMat, 83, 255, THRESH_BINARY);
+        Imgproc.threshold(CbMat, CbThreshMat_Inv, 90, 255, THRESH_BINARY_INV);
 
-        Mat edges = new Mat();
-        Mat hierarchy = new Mat();
-        List<MatOfPoint> contours = new ArrayList<>();
-        Imgproc.GaussianBlur(yellowFiltered, edges, new Size(15, 15), 0);
-        Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size((2*2) + 1, (2*2) + 1));
-        for (int i = 0; i <= 5; i++) {Imgproc.dilate(yellowFiltered, yellowFiltered, kernel);}
-        for (int i = 0; i <= 5; i++) {Imgproc.erode(yellowFiltered, yellowFiltered, kernel);}
-        Imgproc.Canny(yellowFiltered, edges, 10, 100);
+        Core.addWeighted(CbThreshMat, 0.5, CbThreshMat_Inv, 0.5, 0, CbThreshMat_Combined);
 
-        Imgproc.dilate(edges, edges, kernel);
+        Core.addWeighted(CrThreshMat_Combined, 0.5, CbThreshMat_Combined, 0.5, 0, CrCb_Combined);
 
-        Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.threshold(CrCb_Combined, CrCb_Combined, 130, 255, THRESH_BINARY);
 
+        Imgproc.findContours(CrCb_Combined, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
-        double maxVal = 0;
-        int maxValIdx = 0;
-        for (int contourIdx = 0; contourIdx < contours.size(); contourIdx++)
+        inputMat.copyTo(drawingMat_Contours);
+
+        Imgproc.drawContours(drawingMat_Contours, contours, -1, new Scalar(255, 255, 255), 3, 4);
+
+        for (MatOfPoint contour : contours)
         {
-            double contourArea = Imgproc.contourArea(contours.get(contourIdx));
-            if (maxVal < contourArea && contourIdx != 0)
+            Pole pole = (Pole) Imgproc.minAreaRect(new MatOfPoint2f(contour.toArray()));
+
+            if (pole.size.area() < Pole.minArea)
             {
-                maxVal = contourArea;
-                maxValIdx = contourIdx;
+                drawPole(drawingMat_Rectangles, pole, new Scalar(255, 255, 255), 10);
+                poles.add(pole);
             }
         }
 
-        if (maxValIdx != 0)
+        switch (viewportStage)
         {
-            MatOfPoint2f contour2f = new MatOfPoint2f(contours.get(maxValIdx).toArray());
-            RotatedRect rectangle = Imgproc.minAreaRect(contour2f);
-            Point[] rectPoints = new Point[4];
-            rectangle.points(rectPoints);
-            for (int i = 0; i < 4; i++) {
-                Imgproc.line(input, rectPoints[i], rectPoints[(i + 1) % 4], new Scalar(4, 157, 77), 10);
-            }
-            lastRect = rectangle;
+            case COLORSPACE:
+                return yCrCbMat;
+            case RED_CHANNEL:
+                return CrMat;
+            case BLUE_CHANNEL:
+                return CbMat;
+            case RED_CHANNEL_THRESH:
+                return CrThreshMat_Combined;
+            case BLUE_CHANNEL_THRESH:
+                return CbThreshMat_Combined;
+            case CONTOURS:
+                return drawingMat_Contours;
+            case POLES:
+                return drawingMat_Rectangles;
+            default:
+                return inputMat;
         }
-        else
-        {
-            Point[] rectPoints = new Point[4];
-            lastRect.points(rectPoints);
-            for (int i = 0; i < 4; i++) {
-                Imgproc.line(input, rectPoints[i], rectPoints[(i + 1) % 4], new Scalar(4, 157, 77), 10);
-            }
-        }
-
-        // This frame will be returned to the camera preview
-        return input;
     }
 
 }

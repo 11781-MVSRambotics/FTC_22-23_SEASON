@@ -38,26 +38,18 @@ public class Bot {
     {
         public double IMUAngle;
     }
-    public State state = new State();
+
+    public State currentState = new State();
+    public State targetState = new State();
 
     // The two major controllable components of the robot
     // Each of these components will utilize a different Gamepad during TeleOp
     public MecanumDrive chassis;
     public Turret turret;
+    public CameraArray cameras;
 
     // Object references for the internal sensor array
     public BNO055IMU imu;
-
-    // Webcam object for accessing camera data
-    public OpenCvWebcam camera;
-    public static TFObjectDetector tfod;
-    public static VuforiaLocalizer vuforia;
-    public static final String TFOD_MODEL_ASSET = "BlooBoi_Proto.tflite";
-    public static final String[] LABELS = {"BLooboi"};
-    private static final String VUFORIA_KEY = "AbskhHb/////AAABmb8nKWBiYUJ9oEFmxQL9H2kC6M9FzPa1acXUaS/H5wRkeNbpNVBJjDfcrhlTV2SIGc/lxBOtq9X7doE2acyeVOPg4sP69PQQmDVQH5h62IwL8x7BS/udilLU7MyX3KEoaFN+eR1o4FKBspsYrIXA/Oth+TUyrXuAcc6bKSSblICUpDXCeUbj17KrhghgcgxU6wzl84lCDoz6IJ9egO+CG4HlsBhC/YAo0zzi82/BIUMjBLgFMc63fc6eGTGiqjCfrQPtRWHdj2sXHtsjZr9/BpLDvFwFK36vSYkRoSZCZ38Fr+g3nkdep25+oEsmx30IkTYvQVMFZKpK3WWMYUWjWgEzOSvhh+3BOg+3UoxBJSNk";
-
-
-    public Servo CameraServo;
 
     // Constructor that runs each time an object belonging to this class is created
     // All code necessary for startup (pre-opmode) is placed here
@@ -82,27 +74,14 @@ public class Bot {
                 hwMap.get(DigitalChannel.class, "SlideLimiter")
         );
 
+        cameras = new CameraArray(
+                hwMap.get(WebcamName.class, "RightCamera"),
+                hwMap.get(WebcamName.class, "LeftCamera"),
+                hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName())
+        );
+
         imu = hwMap.get(BNO055IMU.class, "EHUB_IMU");
 
-        VuforiaLocalizer.Parameters Vparameters = new VuforiaLocalizer.Parameters();
-
-        Vparameters.vuforiaLicenseKey = VUFORIA_KEY;
-        Vparameters.cameraName = hwMap.get(WebcamName.class, "Eye_Of_Sauron");
-
-        vuforia = ClassFactory.getInstance().createVuforia(Vparameters);
-
-        int tfodMonitorViewId = hwMap.appContext.getResources().getIdentifier(
-                "tfodMonitorViewId", "id", hwMap.appContext.getPackageName());
-        TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
-        tfodParameters.minResultConfidence = 0.8f;
-        tfodParameters.isModelTensorFlow2 = true;
-        tfodParameters.inputSize = 320;
-        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
-        tfod.setZoom(1, 16.0 / 9.0);
-        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABELS);
-
-        camera = OpenCvCameraFactory.getInstance().createWebcam(hwMap.get(WebcamName.class, "Eye_Of_Sauron"), hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName()));
-        CameraServo = hwMap.get(Servo.class, "CameraServo");
         // A container class for all the initialization data that eventually gets used to configure the imu
         BNO055IMU.Parameters IMUparameters = new BNO055IMU.Parameters();
 
@@ -116,24 +95,6 @@ public class Bot {
 
         // Send the configured settings to the imu and start it
         imu.initialize(IMUparameters);
-
-        // Open the virtual pathway to the camera hardware allowing for it to be started or configured
-        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-
-            // onOpened runs the immediately after openCameraDeviceAsync is called, which is why it must be inline
-            @Override
-            public void onOpened() {
-                camera.setPipeline(new PoleDetectionPipeline());
-                camera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
-                camera.startStreaming(1280, 720, OpenCvCameraRotation.SIDEWAYS_RIGHT);
-                FtcDashboard.getInstance().startCameraStream(camera, 10);
-            }
-
-            // onError also need to be inlined, but isn't necessarily called when the camera is opened
-            // Code isn't required inside onError cause it kills itself anyway
-            @Override
-            public void onError(int errorCode) {}
-        });
     }
 
     public void Move()
@@ -149,7 +110,7 @@ public class Bot {
         chassis.UpdateCurrentState();
 
         // Other
-        state.IMUAngle = imu.getAngularOrientation().firstAngle;
+        currentState.IMUAngle = imu.getAngularOrientation().firstAngle;
     }
 
 }
