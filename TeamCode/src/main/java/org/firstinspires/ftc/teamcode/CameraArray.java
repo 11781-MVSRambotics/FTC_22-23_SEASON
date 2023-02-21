@@ -6,11 +6,10 @@ import androidx.annotation.RequiresApi;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.utils.Pole;
-import org.firstinspires.ftc.teamcode.utils.PoleDetectionPipeline;
+import org.firstinspires.ftc.teamcode.utils.HSVPolePipeline;
 import org.opencv.calib3d.StereoSGBM;
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
+import org.opencv.core.RotatedRect;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
@@ -25,20 +24,20 @@ public class CameraArray
 
     OpenCvCamera RightCamera, LeftCamera;
 
-    PoleDetectionPipeline rightCameraPipeline, leftCameraPipeline;
+    HSVPolePipeline rightCameraPipeline, leftCameraPipeline;
 
     public CameraArray(WebcamName RightCamera, WebcamName LeftCamera, int ViewID)
     {
         int[] viewContainerIDs = OpenCvCameraFactory.getInstance().splitLayoutForMultipleViewports(ViewID, 2, OpenCvCameraFactory.ViewportSplitMethod.VERTICALLY);
 
-        rightCameraPipeline = new PoleDetectionPipeline();
-        leftCameraPipeline = new PoleDetectionPipeline();
+        rightCameraPipeline = new HSVPolePipeline();
+        leftCameraPipeline = new HSVPolePipeline();
 
         this.RightCamera = OpenCvCameraFactory.getInstance().createWebcam(RightCamera, viewContainerIDs[0]);
         this.LeftCamera = OpenCvCameraFactory.getInstance().createWebcam(LeftCamera, viewContainerIDs[1]);
     }
 
-    public void StartStreaming(PoleDetectionPipeline.ViewportStage viewportStage)
+    public void StartStreaming(HSVPolePipeline.ViewportStage viewportStage)
     {
         rightCameraPipeline.setViewportStage(viewportStage);
         leftCameraPipeline.setViewportStage(viewportStage);
@@ -76,38 +75,12 @@ public class CameraArray
     @RequiresApi(api = Build.VERSION_CODES.N)
     public double DistanceToClosestPole()
     {
-        ArrayList<Pole> rightCameraView = rightCameraPipeline.getPoles();
-        ArrayList<Pole> leftCameraView = leftCameraPipeline.getPoles();
-
-        if (rightCameraView == null || leftCameraView == null) return -1;
-
-        Collections.sort(rightCameraView, Comparator.comparing(Pole::getWidth).reversed());
-        Collections.sort(leftCameraView, Comparator.comparing(Pole::getWidth).reversed());
-
-        Pole closestRight = rightCameraView.get(0);
-        Pole closestLeft = rightCameraView.get(0);
-
-        StereoSGBM depthMap = StereoSGBM.create(0);
-
-        depthMap.compute(leftCameraPipeline.lastCapturedFrame, rightCameraPipeline.lastCapturedFrame, new Mat());
-
         return 1;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     public double AngleToClosestPole()
     {
-        ArrayList<Pole> rightCameraView = rightCameraPipeline.getPoles();
-        ArrayList<Pole> leftCameraView = leftCameraPipeline.getPoles();
-
-        if (rightCameraView == null || leftCameraView == null) return -1;
-
-        Collections.sort(rightCameraView, Comparator.comparing(Pole::getWidth));
-        Collections.sort(leftCameraView, Comparator.comparing(Pole::getWidth));
-
-        Pole closestRight = rightCameraView.get(0);
-        Pole closestLeft = rightCameraView.get(0);
-
         return 1;
     }
 }

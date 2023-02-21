@@ -1,27 +1,13 @@
 package org.firstinspires.ftc.teamcode.opModes;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
-import com.vuforia.Frame;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.tfod.CameraInformation;
-import org.firstinspires.ftc.robotcore.external.tfod.FrameConsumer;
-import org.firstinspires.ftc.robotcore.external.tfod.FrameGenerator;
-import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
-import org.firstinspires.ftc.teamcode.Bot;
-import org.firstinspires.ftc.teamcode.MecanumDrive;
-import org.firstinspires.ftc.teamcode.Turret;
-import org.firstinspires.ftc.teamcode.utils.PoleDetectionPipeline;
-import org.firstinspires.ftc.teamcode.utils.Vector2D;
+import org.firstinspires.ftc.teamcode.utils.SummitsPipeline;
+import org.firstinspires.ftc.teamcode.utils.HSVPolePipeline;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvWebcam;
-
-import java.util.List;
 
 @SuppressWarnings("unused")
 @TeleOp(name = "Testbench")
@@ -30,9 +16,26 @@ public class TestOpMode extends LinearOpMode
     @Override
     public void runOpMode()
     {
-        Bot bot = new Bot(hardwareMap);
+        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()));
 
-        bot.cameras.StartStreaming(PoleDetectionPipeline.ViewportStage.POLES);
+        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+            @Override
+            public void onOpened() {
+
+                SummitsPipeline summitsPipeline = new SummitsPipeline();
+                HSVPolePipeline ourPipeline = new HSVPolePipeline();
+
+                ourPipeline.setViewportStage(HSVPolePipeline.ViewportStage.POLES);
+
+                camera.setPipeline(ourPipeline);
+                camera.startStreaming(1280, 720);
+            }
+
+            @Override
+            public void onError(int errorCode) {
+
+            }
+        });
 
         waitForStart();
 
