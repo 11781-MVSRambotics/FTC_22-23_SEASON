@@ -12,7 +12,7 @@ public class Pole extends RotatedRect
     }
     Type type;
 
-    public static final double minArea = 100;
+    public static final double minArea = 500;
 
     public Pole()
     {

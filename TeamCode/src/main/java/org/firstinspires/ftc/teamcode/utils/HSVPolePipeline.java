@@ -17,28 +17,38 @@ import org.openftc.easyopencv.OpenCvPipeline;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 public class HSVPolePipeline extends OpenCvPipeline {
 
     public enum ViewportStage
     {
-        COLORSPACE,
-        COLORMASK,
-        YELLOWFILTERED,
-        CONTOURS,
+        HSV,
+        HUE,
+        HUE_THRESH,
+        SATURATION,
+        SAT_THRESH,
+        COMBINED_THRESH,
+        VALUE,
         POLES
     }
 
     public ArrayList<MatOfPoint> contours = new ArrayList<>();
     public ArrayList<RotatedRect> poles = new ArrayList<>();
 
+    Scalar yellowUpperHue = new Scalar(107);
+    Scalar yellowLowerHue = new Scalar(95);
+
+    Scalar yellowUpperSat = new Scalar(220);
+    Scalar yellowLowerSat = new Scalar(150);
+
     public Mat lastCapturedFrame;
     
     public Mat hsvMat = new Mat();
-    public Mat colorMaskMat = new Mat();
-    public Mat yellowFilteredMat = new Mat();
+    public Mat hueThreshMat = new Mat();
+    public Mat saturationThreshMat = new Mat();
+    public Mat combinedThreshMat = new Mat();
 
-    public Mat drawingMat_Contours = new Mat();
     public Mat drawingMat_Rectangles = new Mat();
 
     ViewportStage viewportStage;
@@ -59,37 +69,28 @@ public class HSVPolePipeline extends OpenCvPipeline {
     }
 
     @Override
-    public Mat processFrame(Mat inputMat) {
+    public Mat processFrame(Mat inputMat)
+    {
+        contours.clear();
+        poles.clear();
 
-        // Define the range for color detection
-        Scalar yellowLower = new Scalar(95, 165, 15);
-        Scalar yellowUpper = new Scalar(105, 250, 255);
+        lastCapturedFrame = inputMat;
 
         // Convert the original image into the hsv color scale
         // Theoretically makes it easier to find the same color in different lighting conditions
-        hsvMat = inputMat.clone();
         Imgproc.cvtColor(inputMat, hsvMat, Imgproc.COLOR_BGR2HSV);
 
-        // Take the hsv image and mask out anything not in the color range
-        colorMaskMat = hsvMat;
-        Core.inRange(hsvMat, yellowLower, yellowUpper, colorMaskMat);
+        Vector<Mat> HSVChannels = new Vector<>();
+        Core.split(hsvMat, HSVChannels);
 
-        Core.bitwise_and(hsvMat, colorMaskMat, yellowFilteredMat);
+        Core.inRange(HSVChannels.get(0), yellowLowerHue, yellowUpperHue, hueThreshMat);
+        Core.inRange(HSVChannels.get(1), yellowLowerSat, yellowUpperSat, saturationThreshMat);
 
-        Imgproc.GaussianBlur(yellowFilteredMat, yellowFilteredMat, new Size(15, 15), 0);
-        Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size((2*2) + 1, (2*2) + 1));
-        for (int i = 0; i <= 5; i++) {Imgproc.dilate(yellowFilteredMat, yellowFilteredMat, kernel);}
-        for (int i = 0; i <= 5; i++) {Imgproc.erode(yellowFilteredMat, yellowFilteredMat, kernel);}
-        Imgproc.Canny(yellowFilteredMat, yellowFilteredMat, 10, 100);
+        Core.bitwise_and(hueThreshMat, saturationThreshMat, combinedThreshMat);
 
-        Imgproc.dilate(yellowFilteredMat, yellowFilteredMat, kernel);
+        Imgproc.findContours(combinedThreshMat, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
-        Imgproc.findContours(yellowFilteredMat, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-
-        inputMat.copyTo(drawingMat_Contours);
         inputMat.copyTo(drawingMat_Rectangles);
-
-        Imgproc.drawContours(drawingMat_Contours, contours, -1, new Scalar(255, 255, 255), 3, 4);
 
         for (MatOfPoint contour : contours)
         {
@@ -100,7 +101,7 @@ public class HSVPolePipeline extends OpenCvPipeline {
                 Point[] vertices = new Point[4];
                 pole.points(vertices);
 
-                Imgproc.putText(drawingMat_Rectangles, "H/W Ratio: " + pole.size.height/pole.size.width, vertices[0], 1, 10, new Scalar(255, 255, 255));
+                //Imgproc.putText(drawingMat_Rectangles, "H/W Ratio: " + pole.size.height/pole.size.width, vertices[0], 1, 10, new Scalar(255, 255, 255));
 
                 for (int i = 0; i < 4; i++)
                 {
@@ -110,16 +111,23 @@ public class HSVPolePipeline extends OpenCvPipeline {
             }
         }
 
+
         switch (viewportStage)
         {
-            case COLORSPACE:
+            case HSV:
                 return hsvMat;
-            case COLORMASK:
-                return colorMaskMat;
-            case YELLOWFILTERED:
-                return yellowFilteredMat;
-            case CONTOURS:
-                return drawingMat_Contours;
+            case HUE:
+                return HSVChannels.get(0);
+            case SATURATION:
+                return HSVChannels.get(1);
+            case VALUE:
+                return HSVChannels.get(2);
+            case HUE_THRESH:
+                return hueThreshMat;
+            case SAT_THRESH:
+                return saturationThreshMat;
+            case COMBINED_THRESH:
+                return combinedThreshMat;
             case POLES:
                 return drawingMat_Rectangles;
             default:
