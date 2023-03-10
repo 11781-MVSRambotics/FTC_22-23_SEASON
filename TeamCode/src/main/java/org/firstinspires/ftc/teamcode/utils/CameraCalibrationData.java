@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode.utils;
 
+import static org.opencv.core.CvType.CV_64F;
+
+import android.icu.text.Edits;
+
 import org.checkerframework.checker.units.qual.A;
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.CvType;
@@ -10,32 +14,68 @@ import org.opencv.core.Point3;
 import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.videoio.VideoCapture;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Vector;
 
 public class CameraCalibrationData
 {
+    Size boardSize = new Size(8,8);
+
     public static void main(String[] args)
     {
-        final File imageFolder = new File("CalibImages");
-        Size chessboardSize = new Size(8,8);
+        Mat frame = new Mat();
+        Mat drawToFrame = new Mat();
 
-        List<Mat> objectPoints = new ArrayList<>();
-        List<Mat> imagePoints = new ArrayList<>();
+        Mat distanceCoefficients;
+        ArrayList<Mat> savedImages;
 
-        Mat intrinsic = new Mat(3, 3, CvType.CV_32FC1);
+        ArrayList<MatOfPoint2f> markerCorners, rejectedCandidates;
 
-        MatOfPoint3f obj = new MatOfPoint3f();
-        for(int x=0; x<chessboardSize.width; ++x)
+        VideoCapture vid = new VideoCapture(0);
+
+        if(!vid.isOpened())
         {
-            for(int y=0;  y<chessboardSize.height; ++y)
+            return;
+        }
+
+        int fps = 20;
+
+        while (true)
+        {
+            if(!vid.read(frame))
             {
-                obj.push_back(new MatOfPoint3f(new Point3(x, y, 0)));
+                MatOfPoint2f foundPoints = new MatOfPoint2f();
+
+                boolean found = Calib3d.findChessboardCorners(frame, new Size(8, 8), foundPoints,Calib3d.CALIB_CB_ADAPTIVE_THRESH | Calib3d.CALIB_CB_NORMALIZE_IMAGE);
+                frame.copyTo(drawToFrame);
+                if(found)
+                {
+
+                }
             }
         }
+    }
+
+    void createChessboardPoints(double cellSideLength, MatOfPoint3f corners)
+    {
+        for(int x=0; x<boardSize.width; ++x)
+        {
+            for(int y=0;  y<boardSize.height; ++y)
+            {
+                corners.push_back(new MatOfPoint3f(new Point3(x * cellSideLength, y * cellSideLength, 0)));
+            }
+        }
+    }
+
+    void getChessboardCorners(ArrayList<MatOfPoint2f> foundCorners)
+    {
+        final File imageFolder = new File("CalibImages");
 
         for (File file : Objects.requireNonNull(imageFolder.listFiles()))
         {
@@ -43,106 +83,11 @@ public class CameraCalibrationData
             Imgproc.cvtColor(image, image, Imgproc.COLOR_RGB2GRAY);
 
             MatOfPoint2f imageCorners = new MatOfPoint2f();
-            boolean found = Calib3d.findChessboardCorners(image, chessboardSize, imageCorners, Calib3d.CALIB_CB_ADAPTIVE_THRESH + Calib3d.CALIB_CB_NORMALIZE_IMAGE + Calib3d.CALIB_CB_FAST_CHECK);
+            boolean found = Calib3d.findChessboardCorners(image, boardSize, imageCorners, Calib3d.CALIB_CB_ADAPTIVE_THRESH | Calib3d.CALIB_CB_NORMALIZE_IMAGE);
             if (found)
             {
-                objectPoints.add(obj);
-                imagePoints.add(imageCorners);
+                foundCorners.add(imageCorners);
             }
         }
-
-        ArrayList<Mat> rvecs = new ArrayList<>();
-        ArrayList<Mat> tvecs = new ArrayList<>();
-        Mat distCoeffs = new Mat();
-        intrinsic.put(0, 0, 1);
-        intrinsic.put(1, 1, 1);
-
-        Calib3d.calibrateCamera(objectPoints, imagePoints, new Size(), intrinsic, distCoeffs, rvecs, tvecs);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        /*
-        final int minDisparity = 0;
-        final int numDisparities = 16;
-        final int blockSize = 3;
-        final int P1 = 0;
-        final int P2 = 0;
-        final int disp12MaxDiff = 0;
-        final int preFilterCap = 0;
-        final int uniquenessRatio = 0;
-        final int speckleWindowSize = 0;
-        final int speckleRange = 0;
-        final int mode = StereoSGBM.MODE_SGBM;
-        StereoSGBM stereoProcessor = StereoSGBM.create(
-                minDisparity,
-                numDisparities,
-                blockSize,
-                P1,
-                P2,
-                disp12MaxDiff,
-                preFilterCap,
-                uniquenessRatio,
-                speckleWindowSize,
-                speckleRange,
-                mode
-        );
-
-        List<Mat> objectPoints = new ArrayList<>();
-        List<Mat> imagePoints1 = new ArrayList<>();
-        List<Mat> imagePoints2 = new ArrayList<>();
-        Mat cameraMatrix1 = new Mat();
-        Mat distCoeffs1 = new Mat();
-        Mat cameraMatrix2 = new Mat();
-        Mat distCoeffs2 = new Mat();
-        Size imageSize = new Size();
-        Mat R = new Mat();
-        Mat T = new Mat();
-        Mat E = new Mat();
-        Mat F = new Mat();
-
-
-        Mat distCoeffsLeft = new Mat();
-        Mat distCoeffsRight = new Mat();
-        Size imageSize = new Size();
-        Mat R = new Mat();
-        Mat T = new Mat();
-        Mat R1 = new Mat();
-        Mat R2 = new Mat();
-        Mat P1 = new Mat();
-        Mat P2 = new Mat();
-        Mat Q = new Mat();
-        int flags = Calib3d.CALIB_ZERO_DISPARITY;
-        double alpha = -1;
-        Size newImageSize = new Size(0, 0);
-        Calib3d.stereoRectify(
-                leftPipeline.getLastCapturedFrame(),
-                distCoeffsLeft,
-                rightPipeline.getLastCapturedFrame(),
-                distCoeffsRight,
-                imageSize,
-                R,
-                T,
-                R1,
-                R2,
-                P1,
-                P2,
-                Q,
-                flags,
-                alpha,
-                newImageSize
-        );
-
-         */
     }
 }
