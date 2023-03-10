@@ -1,9 +1,5 @@
 package org.firstinspires.ftc.teamcode.utils;
 
-import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
-import static org.opencv.imgproc.Imgproc.THRESH_BINARY_INV;
-
-import org.checkerframework.checker.units.qual.A;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -11,15 +7,18 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
 
 public class HSVPolePipeline extends OpenCvPipeline {
+
+    static final Scalar YELLOW_UPPER_HUE = new Scalar(107);
+    static final Scalar YELLOW_LOWER_HUE = new Scalar(95);
+
+    static final Scalar YELLOW_UPPER_SAT = new Scalar(200);
+    static final Scalar YELLOW_LOWER_SAT = new Scalar(100);
 
     public enum ViewportStage
     {
@@ -29,27 +28,22 @@ public class HSVPolePipeline extends OpenCvPipeline {
         SATURATION,
         SAT_THRESH,
         COMBINED_THRESH,
-        VALUE,
         POLES
     }
 
-    public ArrayList<MatOfPoint> contours = new ArrayList<>();
-    public ArrayList<RotatedRect> poles = new ArrayList<>();
+    ArrayList<RotatedRect> poles = new ArrayList<>();
+    ArrayList<MatOfPoint> contours = new ArrayList<>();
 
-    Scalar yellowUpperHue = new Scalar(107);
-    Scalar yellowLowerHue = new Scalar(95);
-
-    Scalar yellowUpperSat = new Scalar(220);
-    Scalar yellowLowerSat = new Scalar(150);
-
-    public Mat lastCapturedFrame;
+    Mat lastCapturedFrame = new Mat();
+    Mat lastProcessedFrame = new Mat();
     
-    public Mat hsvMat = new Mat();
-    public Mat hueThreshMat = new Mat();
-    public Mat saturationThreshMat = new Mat();
-    public Mat combinedThreshMat = new Mat();
-
-    public Mat drawingMat_Rectangles = new Mat();
+    Mat hsvMat = new Mat();
+    Mat hueMat = new Mat();
+    Mat saturationMat = new Mat();
+    Mat hueThreshMat = new Mat();
+    Mat saturationThreshMat = new Mat();
+    Mat combinedThreshMat = new Mat();
+    Mat drawingMat_Rectangles = new Mat();
 
     ViewportStage viewportStage;
 
@@ -58,9 +52,14 @@ public class HSVPolePipeline extends OpenCvPipeline {
         this.viewportStage = viewportStage;
     }
 
-    public ArrayList<MatOfPoint> getContours()
+    public Mat getLastCapturedFrame()
     {
-        return contours;
+        return lastCapturedFrame;
+    }
+
+    public Mat getLastProcessedFrame()
+    {
+        return lastProcessedFrame;
     }
 
     public ArrayList<RotatedRect> getPoles()
@@ -68,29 +67,40 @@ public class HSVPolePipeline extends OpenCvPipeline {
         return poles;
     }
 
+    static void drawPole(Mat img, RotatedRect pole)
+    {
+        Point[] vertices = new Point[4];
+        pole.points(vertices);
+
+        //Imgproc.putText(img, pole.getType() + " Pole", vertices[0], 1, 3, new Scalar(255, 0, 0));
+
+        for (int i = 0; i < 4; i++)
+        {
+            Imgproc.line(img, vertices[i], vertices[(i + 1) % 4], new Scalar(255, 0, 0), 2);
+        }
+    }
+
     @Override
     public Mat processFrame(Mat inputMat)
     {
+        inputMat.copyTo(drawingMat_Rectangles);
+
         contours.clear();
         poles.clear();
-
-        lastCapturedFrame = inputMat;
 
         // Convert the original image into the hsv color scale
         // Theoretically makes it easier to find the same color in different lighting conditions
         Imgproc.cvtColor(inputMat, hsvMat, Imgproc.COLOR_BGR2HSV);
 
-        Vector<Mat> HSVChannels = new Vector<>();
-        Core.split(hsvMat, HSVChannels);
+        Core.extractChannel(hsvMat, hueMat, 0);
+        Core.extractChannel(hsvMat, saturationMat, 1);
 
-        Core.inRange(HSVChannels.get(0), yellowLowerHue, yellowUpperHue, hueThreshMat);
-        Core.inRange(HSVChannels.get(1), yellowLowerSat, yellowUpperSat, saturationThreshMat);
+        Core.inRange(hueMat, YELLOW_LOWER_HUE, YELLOW_UPPER_HUE, hueThreshMat);
+        Core.inRange(saturationMat, YELLOW_LOWER_SAT, YELLOW_UPPER_SAT, saturationThreshMat);
 
         Core.bitwise_and(hueThreshMat, saturationThreshMat, combinedThreshMat);
 
         Imgproc.findContours(combinedThreshMat, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-
-        inputMat.copyTo(drawingMat_Rectangles);
 
         for (MatOfPoint contour : contours)
         {
@@ -98,41 +108,59 @@ public class HSVPolePipeline extends OpenCvPipeline {
 
             if (pole.size.area() > Pole.minArea)
             {
-                Point[] vertices = new Point[4];
-                pole.points(vertices);
-
-                //Imgproc.putText(drawingMat_Rectangles, "H/W Ratio: " + pole.size.height/pole.size.width, vertices[0], 1, 10, new Scalar(255, 255, 255));
-
-                for (int i = 0; i < 4; i++)
-                {
-                    Imgproc.line(drawingMat_Rectangles, vertices[i], vertices[(i + 1) % 4], new Scalar(255, 255, 255), 4);
-                }
+                drawPole(drawingMat_Rectangles, pole);
                 poles.add(pole);
             }
         }
 
+        Mat out = new Mat();
+
+        if (viewportStage == null) {return inputMat;}
 
         switch (viewportStage)
         {
             case HSV:
-                return hsvMat;
+                hsvMat.copyTo(out);
+                break;
             case HUE:
-                return HSVChannels.get(0);
+                hueMat.copyTo(out);
+                break;
             case SATURATION:
-                return HSVChannels.get(1);
-            case VALUE:
-                return HSVChannels.get(2);
+                saturationMat.copyTo(out);
+                break;
             case HUE_THRESH:
-                return hueThreshMat;
+                hueThreshMat.copyTo(out);
+                break;
             case SAT_THRESH:
-                return saturationThreshMat;
+                saturationThreshMat.copyTo(out);
+                break;
             case COMBINED_THRESH:
-                return combinedThreshMat;
+                combinedThreshMat.copyTo(out);
+                break;
             case POLES:
-                return drawingMat_Rectangles;
+                drawingMat_Rectangles.copyTo(out);
+                break;
             default:
-                return inputMat;
+                inputMat.copyTo(out);
+                break;
         }
+
+        inputMat.copyTo(lastCapturedFrame);
+
+        /*
+        inputMat.release();
+        hsvMat.release();
+        hueMat.release();
+        saturationMat.release();
+        hueThreshMat.release();
+        saturationThreshMat.release();
+        combinedThreshMat.release();
+        drawingMat_Rectangles.release();
+         */
+
+        out.copyTo(lastProcessedFrame);
+        return out;
+
     }
 
 }

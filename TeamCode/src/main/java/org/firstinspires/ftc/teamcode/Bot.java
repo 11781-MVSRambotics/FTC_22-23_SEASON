@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.graphics.Bitmap;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -8,7 +10,12 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.function.Consumer;
+import org.firstinspires.ftc.robotcore.external.function.Continuation;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.stream.CameraStreamServer;
+import org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource;
+import org.openftc.easyopencv.OpenCvCameraFactory;
 
 // This is the main class used for creating a reference to the robot globally
 // It essentially acts as a wrapper for all our methods and functions so that it makes sense as a coherent program
@@ -56,8 +63,8 @@ public class Bot {
         );
 
         cameras = new CameraArray(
-                hwMap.get(WebcamName.class, "RightCamera"),
-                hwMap.get(WebcamName.class, "LeftCamera"),
+                hwMap.get(WebcamName.class, "Webcam 1"),
+                hwMap.get(WebcamName.class, "Webcam 2"),
                 hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName())
         );
 

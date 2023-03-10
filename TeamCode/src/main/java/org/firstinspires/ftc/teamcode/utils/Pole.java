@@ -32,11 +32,6 @@ public class Pole extends RotatedRect
         }
     }
 
-    public double getWidth()
-    {
-        return size.width;
-    }
-
     public Type getType()
     {
         return type;
