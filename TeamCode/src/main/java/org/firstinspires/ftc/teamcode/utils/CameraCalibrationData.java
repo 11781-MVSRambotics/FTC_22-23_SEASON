@@ -1,12 +1,9 @@
 package org.firstinspires.ftc.teamcode.utils;
 
-import static org.opencv.core.CvType.CV_64F;
+import android.app.Activity;
+import android.view.View;
 
-import android.icu.text.Edits;
-
-import org.checkerframework.checker.units.qual.A;
 import org.opencv.calib3d.Calib3d;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.MatOfPoint3f;
@@ -18,10 +15,7 @@ import org.opencv.videoio.VideoCapture;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Objects;
-import java.util.Vector;
 
 public class CameraCalibrationData
 {
@@ -56,7 +50,6 @@ public class CameraCalibrationData
                 frame.copyTo(drawToFrame);
                 if(found)
                 {
-
                 }
             }
         }
